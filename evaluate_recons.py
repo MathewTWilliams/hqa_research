@@ -10,12 +10,15 @@ def main():
     columns.append("labels")
     recon_df = pd.DataFrame(data = pd.read_pickle(PICKLED_RECON_PATH), columns=columns)
 
-    targets = recon_df["labels"]
+    targets = recon_df["labels"].to_numpy()
     recon_df = recon_df.drop(columns="labels")
-    #TODO: need to make dataset and loader for each layer
-    recon_ds= MyDataset(data = recon_df, targets = targets)
-    recon_dl = DataLoader(recon_ds)
     
+    ds_dl_dict = {}
+
+    for (columnName, columnData) in recon_df.items(): 
+        cur_ds = MyDataset(data = columnData.to_numpy(), targets=targets)
+        cur_dl = DataLoader(cur_ds)
+        ds_dl_dict[columnName] = (cur_ds, cur_dl)
 
     transform = transforms.Compose([
         transforms.Resize(32), 
@@ -26,6 +29,9 @@ def main():
     test_ds = MNIST('/tmp/mnist_test_', download=True, train = False, transform=transform)
     test_dl = DataLoader(test_ds)
     
+
+    
+
 
 if __name__ == "__main__": 
     main()
