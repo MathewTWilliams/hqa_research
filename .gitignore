@@ -1,5 +1,10 @@
 # Custom
-data/
+data_jpg/
+data_original/
+data_recon_*/
+/pickled_recons.pkl
+models/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

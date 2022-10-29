@@ -1,15 +1,10 @@
 
 
-
-
-
 def main(): 
-    a = [1,2,3,4,5]
-    b = [6,7,8,9,10]
-    c = [11, 12, 13, 14, 15]
+    my_dict = {str(i) : i for i in range(10)}
 
-    my_list = [a,b,c]
-    print(list(zip(*my_list)))
+    for key in my_dict: 
+        print(key,":", my_dict[key])
 
 if __name__ == "__main__": 
     main()

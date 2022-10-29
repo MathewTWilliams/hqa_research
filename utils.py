@@ -14,6 +14,7 @@ from torch.utils.data import Dataset
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PICKLED_RECON_PATH = os.path.join(os.path.abspath(os.getcwd()), "pickled_recons.pkl")
 LAYER_NAMES = ["Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4 Final"]
+LENET_SAVE_PATH = os.path.join(os.path.abspath(os.getcwd()), "models", "lenet.pt")
 
 class MyDataset(Dataset):
     def __init__(self, data, targets, transform=None):
@@ -33,9 +34,6 @@ class MyDataset(Dataset):
     
     def __len__(self):
         return len(self.data)
-
-
-
 
 def set_seeds(seed=42, fully_deterministic=False):
     torch.manual_seed(seed)
@@ -96,8 +94,8 @@ def save_img(recon, label, path, idx):
 	p = Path(path)
 	p.mkdir(parents=True,exist_ok=True)
 	print(f"recon image shape: {recon.shape}")
-	matplotlib.image.imsave(p / f"img{label}{idx}.png", recon.cpu().numpy(), cmap = "gray")	
-	checkrecon = np.asarray(Image.open(p / f"img{label}{idx}.png").convert("L"))
+	matplotlib.image.imsave(p / f"img{label}_{idx}.png", recon.cpu().numpy(), cmap = "gray")	
+	checkrecon = np.asarray(Image.open(p / f"img{label}_{idx}.png").convert("L"))
 	print(f"loaded image shape: {checkrecon.shape}")
 
 
@@ -111,8 +109,8 @@ def recon_comparison(model, ds_test, names, descriptions):
         images.append(img.cpu().numpy())
         targets.append(label)
     #import ipdb; ipdb.set_trace()
-    #print("Original images to be reconstructed")
-    #output = np.hstack(images)
+    print("Original images to be reconstructed")
+    output = np.hstack(images)
     #show_image(output)
     
     output_dict = {name:[] for name in names}
@@ -129,11 +127,30 @@ def recon_comparison(model, ds_test, names, descriptions):
             recon = layer.reconstruct(for_recon).squeeze()
             output_dict[name].append(recon.cpu().numpy())
             images.append(recon.cpu().numpy()) 
-            path = os.path.join(os.getcwd(), 'data/', name, f'{label}')
-            save_img(recon, label, path, idx)
-        
-        #print(f"{name}: {description}")
-        #output = np.hstack(images)
+
+            recon_path = os.path.join(os.getcwd(), f"data_recon_{names.index(name)}", f'{label}')
+            orig_path = os.path.join(os.getcwd(), 'data_original', f'{label}')
+            jpg_path = os.path.join(os.getcwd(), "data_jpg", f"{label}")
+            save_img(recon, label, recon_path, idx)
+            save_img(img, label, orig_path, idx)
+
+            im = Image.open(os.path.join(orig_path, f"img{label}_{idx}.png"))
+            print("The size of the image before conversion :", end = "")
+            print(os.path.getsize(os.path.join(orig_path, f"img{label}_{idx}.png")))
+
+            #converting to jpg
+            gr_im = im.convert("L")
+
+            #exporting the image
+            p = Path(jpg_path)
+            p.mkdir(parents = True, exist_ok=True)
+
+            gr_im.save(os.path.join(jpg_path, f"img{label}_{idx}.jpeg"))
+            print("The size of the image after conversion : ", end = "")
+            print(os.path.getsize(os.path.join(jpg_path, f"img{label}_{idx}.jpeg")))
+    
+        print(f"{name}: {description}")
+        output = np.hstack(images)
         #show_image(output)
 
     return output_dict, targets

@@ -63,10 +63,10 @@ def main():
     output_dict, targets = recon_comparison(hqa_model, ds_test, LAYER_NAMES, layer_descriptions)
     
     
-    '''# Layer distortions
+    # Layer distortions
     distortions, rates = get_rd_data(hqa_model,dl_test)
     print("Name \t\t Distortion \t Rate")
-    for dist, rate, name in zip(distortions, rates, layer_names):
+    for dist, rate, name in zip(distortions, rates, LAYER_NAMES):
         print(f"{name} \t {dist:.4f} \t {int(rate)}")
     
     # Free samples
@@ -136,9 +136,9 @@ def main():
     print("Originals")
     show_original(1, ds_test)
     show_original(9, ds_test)
-    for layer, name, description in zip(hqa_model, layer_names, layer_descriptions):
+    for layer, name, description in zip(hqa_model, LAYER_NAMES, layer_descriptions):
         print(f"{name} : {description}")
-        interpolate(1, 9, ds_test, layer, grid_x=10)'''
+        interpolate(1, 9, ds_test, layer, grid_x=10)
         
     #     TEST DATASET CREATION AND PICKLING
     # Let's create 10 RGB images of size 128x128 and 10 labels {0, 1}
