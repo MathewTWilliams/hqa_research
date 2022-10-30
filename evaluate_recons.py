@@ -10,6 +10,7 @@ from torchvision.datasets import ImageFolder
 import os
 import torch
 from sklearn.metrics import classification_report
+import torchattacks
 
 BATCH_SIZE = 512
 
@@ -33,7 +34,7 @@ def get_pickled_recons():
 
     
 
-def evaluate_dataset(root):
+def evaluate_dataset(model, root, attack = None):
     transform = transforms.Compose(
         [
             transforms.Grayscale(num_output_channels=1),
@@ -44,14 +45,13 @@ def evaluate_dataset(root):
     ds_test = ImageFolder(os.path.join(os.getcwd(), root), transform=transform)
     dl_test = DataLoader(ds_test, batch_size=BATCH_SIZE, shuffle = False, num_workers=4)
 
-    lenet = torch.load(LENET_SAVE_PATH)
-    lenet.eval()
     all_outputs = torch.Tensor().to(device)
     test_labels = []
 
+    #TODO: add attack into code below
     with torch.no_grad():
         for data, labels in dl_test:
-            cur_output = lenet(data.to(device))
+            cur_output = model(data.to(device))
             all_outputs = torch.cat((all_outputs, cur_output), 0)
             test_labels.extend(labels.tolist())
     
@@ -75,8 +75,19 @@ def main():
                     "data_recon_3", 
                     "data_recon_4"]
 
+    lenet = torch.load(LENET_SAVE_PATH)
+    lenet.eval()
+
+    #for root in root_names: 
+    #    evaluate_dataset(lenet, root)
+
+    fgsm_attack = torchattacks.FGSM(lenet)
+
     for root in root_names: 
-        evaluate_dataset(root)
+        evaluate_dataset(lenet, root, fgsm_attack)
+
+    
+
 
 
 if __name__ == "__main__": 
