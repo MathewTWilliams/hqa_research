@@ -48,14 +48,14 @@ def evaluate_dataset(model, root, attack = None):
     all_outputs = torch.Tensor().to(device)
     test_labels = []
 
-    #TODO: add attack into code below
-    with torch.no_grad():
-        for data, labels in dl_test:
-            cur_output = model(data.to(device))
-            all_outputs = torch.cat((all_outputs, cur_output), 0)
-            test_labels.extend(labels.tolist())
+    for data, labels in dl_test:
+        if attack != None: 
+            data = attack(data, labels)
+        cur_output = model(data.to(device))
+        all_outputs = torch.cat((all_outputs, cur_output), 0)
+        test_labels.extend(labels.tolist())
     
-    softmax_probs = torch.exp(all_outputs).cpu()
+    softmax_probs = torch.exp(all_outputs).detach().cpu().numpy()
     predictions = np.argmax(softmax_probs, axis = -1)
 
     class_report = classification_report(test_labels, predictions, output_dict=True)
@@ -78,8 +78,8 @@ def main():
     lenet = torch.load(LENET_SAVE_PATH)
     lenet.eval()
 
-    #for root in root_names: 
-    #    evaluate_dataset(lenet, root)
+    for root in root_names: 
+        evaluate_dataset(lenet, root)
 
     fgsm_attack = torchattacks.FGSM(lenet)
 
