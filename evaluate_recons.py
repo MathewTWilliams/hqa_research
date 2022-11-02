@@ -3,7 +3,7 @@
 
 import pandas as pd
 import numpy as np
-from utils import MyDataset, PICKLED_RECON_PATH, LAYER_NAMES, LENET_SAVE_PATH, device
+from utils import MyDataset, PICKLED_RECON_PATH, LAYER_NAMES, LENET_SAVE_PATH, device, show_image
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
@@ -12,39 +12,18 @@ import torch
 from sklearn.metrics import classification_report
 import torchattacks
 
+import matplotlib.pyplot as plt
+
 BATCH_SIZE = 512
 
-def get_pickled_recons():
-
-    columns = [layer_name for layer_name in LAYER_NAMES]
-    columns.append("labels")
-    recon_df = pd.DataFrame(data = pd.read_pickle(PICKLED_RECON_PATH), columns=columns)
-
-    targets = recon_df["labels"].to_numpy()
-    recon_df = recon_df.drop(columns="labels")
-    
-    ds_dl_dict = {}
-
-    
-    #TODO make myDataset return images instead of numpy array
-    for (columnName, columnData) in recon_df.items(): 
-        ds_cur = MyDataset(data = columnData.to_numpy(), targets=targets)
-        dl_cur = DataLoader(ds_cur)
-        ds_dl_dict[columnName] = (ds_cur, dl_cur)
-
-    
-
-def evaluate_dataset(model, root, attack = None):
-    transform = transforms.Compose(
+transform = transforms.Compose(
         [
             transforms.Grayscale(num_output_channels=1),
             transforms.ToTensor()
         ]
     )
 
-    ds_test = ImageFolder(os.path.join(os.getcwd(), root), transform=transform)
-    dl_test = DataLoader(ds_test, batch_size=BATCH_SIZE, shuffle = False, num_workers=4)
-
+def evaluate_dataset(model, dl_test, ds_name, attack = None):
     all_outputs = torch.Tensor().to(device)
     test_labels = []
 
@@ -60,14 +39,42 @@ def evaluate_dataset(model, root, attack = None):
 
     class_report = classification_report(test_labels, predictions, output_dict=True)
 
-    print("Classification results for:", root)
+    print("Classification results for:", ds_name)
     for key in class_report:
         print(key,":", class_report[key])
     print("==========================================================")
+
+
+def eval_pickled_recons(model, column_name, attack = None):
+    global transform
+
+    columns = [layer_name for layer_name in LAYER_NAMES]
+    columns.append("labels")
+    recon_df = pd.DataFrame(data = pd.read_pickle(PICKLED_RECON_PATH), columns=columns)
+
+    targets = recon_df["labels"].to_numpy()
+    recon_df = recon_df.drop(columns="labels")
+
+    ds_test = MyDataset(recon_df[column_name].to_numpy(), targets, transform)
+    dl_test = DataLoader(ds_test, BATCH_SIZE, shuffle=False, num_workers=4)
+
+    evaluate_dataset(model, dl_test, column_name, attack)
+
+    
+def eval_image_recons(model, root, attack = None):
+    global transform
+    ds_test = ImageFolder(os.path.join(os.getcwd(), root), transform=transform)
+    dl_test = DataLoader(ds_test, batch_size=BATCH_SIZE, shuffle = False, num_workers=4)
+    evaluate_dataset(model, dl_test, root, attack)
+    
+
         
 def main():
 
-    root_names = [ "data_original",
+    lenet = torch.load(LENET_SAVE_PATH)
+    lenet.eval()
+
+    img_root_names = ["data_original",
                     "data_jpg",
                     "data_recon_0", 
                     "data_recon_1", 
@@ -75,20 +82,16 @@ def main():
                     "data_recon_3", 
                     "data_recon_4"]
 
-    lenet = torch.load(LENET_SAVE_PATH)
-    lenet.eval()
+    #for layer in LAYER_NAMES:
+    #    eval_pickled_recons(lenet, layer)
 
-    for root in root_names: 
-        evaluate_dataset(lenet, root)
+    for root in img_root_names: 
+        eval_image_recons(lenet, root)
 
     fgsm_attack = torchattacks.FGSM(lenet)
 
-    for root in root_names: 
-        evaluate_dataset(lenet, root, fgsm_attack)
-
-    
-
-
+    for root in img_root_names: 
+        eval_image_recons(lenet, root, fgsm_attack)
 
 if __name__ == "__main__": 
     main()
