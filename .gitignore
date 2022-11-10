@@ -4,8 +4,8 @@ data_original/
 data_recon_*/
 /pickled_recons.pkl
 models/
-Classification_Results.txt
-FGSM_attack_results.txt
+mnist_accuracies.csv
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
