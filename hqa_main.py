@@ -27,11 +27,11 @@ def main():
         ]
     )
     batch_size = 512
-    ds_train = MNIST('/tmp/mnist', download=True, transform=transform)
+    ds_train = MNIST(MNIST_TRAIN_PATH, download=True, transform=transform)
     dl_train = DataLoader(ds_train, batch_size=batch_size, shuffle=True, num_workers=4)
     
     
-    ds_test = MNIST('/tmp/mnist_test_', download=True, train=False, transform=transform)
+    ds_test = MNIST(MNIST_TEST_PATH, download=True, train=False, transform=transform)
     dl_test = DataLoader(ds_test, batch_size=batch_size, num_workers=4)
     test_x, _ = next(iter(dl_test))
     test_x = test_x.to(device)
@@ -39,15 +39,13 @@ def main():
     # TRAIN HQA STACK
     
     # Train a HQA stack
-    model_name = "hqa_model"
-    models_dir = f"{os.getcwd()}/models"
-    os.makedirs(models_dir, exist_ok=True)
+    os.makedirs(MODELS_DIR, exist_ok=True)
     
     
-    if not os.path.isfile(f"{models_dir}/{model_name}.pt"):
-        hqa_model = train_full_stack(dl_train, test_x, models_dir, model_name, epochs=5)
+    if not os.path.isfile(HQA_SAVE_PATH):
+        hqa_model = train_full_stack(dl_train, test_x, MODELS_DIR, HQA_MODEL_NAME, epochs=5)
     else:
-        hqa_model = torch.load(f"{models_dir}/{model_name}.pt")
+        hqa_model = torch.load(HQA_SAVE_PATH)
     
     hqa_model.eval()
         

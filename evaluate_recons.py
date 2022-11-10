@@ -3,16 +3,16 @@
 
 import pandas as pd
 import numpy as np
-from utils import MyDataset, PICKLED_RECON_PATH, LAYER_NAMES, LENET_SAVE_PATH, device, show_image
+from utils import MyDataset, PICKLED_RECON_PATH, LAYER_NAMES, LENET_SAVE_PATH, device, IMG_DIR_PATH
+from utils import add_mnist_accuracies
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 import os
 import torch
-from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 import torchattacks
 
-import matplotlib.pyplot as plt
 
 BATCH_SIZE = 512
 
@@ -23,7 +23,7 @@ transform = transforms.Compose(
         ]
     )
 
-def evaluate_dataset(model, dl_test, ds_name, attack = None):
+def evaluate_dataset(model, model_name, dl_test, ds_name, attack = None):
     all_outputs = torch.Tensor().to(device)
     test_labels = []
 
@@ -37,15 +37,11 @@ def evaluate_dataset(model, dl_test, ds_name, attack = None):
     softmax_probs = torch.exp(all_outputs).detach().cpu().numpy()
     predictions = np.argmax(softmax_probs, axis = -1)
 
-    class_report = classification_report(test_labels, predictions, output_dict=True)
+    conf_mat = confusion_matrix(test_labels, predictions, normalize="true")
+    attack_name = attack.attack if attack != None else "None"
+    add_mnist_accuracies(model_name, ds_name, attack_name, conf_mat.diagonal().tolist())
 
-    print("Classification results for:", ds_name)
-    for key in class_report:
-        print(key,":", class_report[key])
-    print("==========================================================")
-
-
-def eval_pickled_recons(model, column_name, attack = None):
+def eval_pickled_recons(model, model_name, column_name, attack = None):
     global transform
 
     columns = [layer_name for layer_name in LAYER_NAMES]
@@ -58,19 +54,18 @@ def eval_pickled_recons(model, column_name, attack = None):
     ds_test = MyDataset(recon_df[column_name].to_numpy(), targets, transform)
     dl_test = DataLoader(ds_test, BATCH_SIZE, shuffle=False, num_workers=4)
 
-    evaluate_dataset(model, dl_test, column_name, attack)
+    evaluate_dataset(model, model_name, dl_test, column_name, attack)
 
     
-def eval_image_recons(model, root, attack = None):
+def eval_image_recons(model, model_name, root, attack = None):
     global transform
-    ds_test = ImageFolder(os.path.join(os.getcwd(), root), transform=transform)
+    ds_test = ImageFolder(os.path.join(IMG_DIR_PATH, root), transform=transform)
     dl_test = DataLoader(ds_test, batch_size=BATCH_SIZE, shuffle = False, num_workers=4)
-    evaluate_dataset(model, dl_test, root, attack)
+    evaluate_dataset(model, model_name, dl_test, root, attack)
     
 
         
 def main():
-
     lenet = torch.load(LENET_SAVE_PATH)
     lenet.eval()
 
@@ -83,15 +78,16 @@ def main():
                     "data_recon_4"]
 
     #for layer in LAYER_NAMES:
-    #    eval_pickled_recons(lenet, layer)
+    #    eval_pickled_recons(lenet, "LeNet-5", layer)
 
     for root in img_root_names: 
-        eval_image_recons(lenet, root)
+        eval_image_recons(lenet, "LeNet-5", root)
+        
 
     fgsm_attack = torchattacks.FGSM(lenet)
-
+    
     for root in img_root_names: 
-        eval_image_recons(lenet, root, fgsm_attack)
+        eval_image_recons(lenet, "LeNet-5", root, fgsm_attack)
 
 if __name__ == "__main__": 
     main()

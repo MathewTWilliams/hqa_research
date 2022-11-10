@@ -2,7 +2,7 @@ import numpy as np
 import datetime
 import torch
 import torch.nn.functional as F
-from utils import get_bit_usage, device
+from utils import get_bit_usage, device, LAYER_NAMES
 from r_adam import RAdam
 from scheduler import FlatCA
 import os
@@ -97,7 +97,7 @@ def train_full_stack(dl_train, test_x, root, exp_name, epochs=5, lr=4e-4):
     
     os.makedirs(root + "/log", exist_ok=True)
     
-    for i in range(5):
+    for i,_ in enumerate(LAYER_NAMES):
         print(f"training layer{i}")
         if i == 0:
             hqa = HQA.init_bottom(

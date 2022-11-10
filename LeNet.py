@@ -7,7 +7,6 @@ from torch.nn import Module, Tanh, Softmax, CrossEntropyLoss
 from torch.optim import SGD
 from utils import device
 import numpy as np
-import os
 from utils import LENET_SAVE_PATH
 from tqdm import tqdm
 
@@ -75,7 +74,7 @@ class LeNet_5(Module):
         x = self.__linear_layers(x)
         return x
 
-    def run_epochs(self, n_epochs, validate = True):
+    def run_epochs(self, n_epochs, validate = True, early_stopping = False):
         train_losses = []
         valid_losses = []
         min_valid_loss = np.inf
@@ -88,7 +87,7 @@ class LeNet_5(Module):
                 valid_loss = self.__validate()
                 valid_losses.append(valid_loss)
 
-                if valid_loss > min_valid_loss: 
+                if early_stopping and valid_loss > min_valid_loss: 
                     break
                 
                 min_valid_loss = valid_loss

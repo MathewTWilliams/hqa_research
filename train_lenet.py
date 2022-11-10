@@ -6,7 +6,7 @@ from LeNet import LeNet_5
 from torchvision import transforms
 from torchvision.datasets import MNIST
 from torch.utils.data import DataLoader, random_split
-from utils import device
+from utils import device, MNIST_TRAIN_PATH, MNIST_TEST_PATH
 import matplotlib.pyplot as plt
 import torch
 import numpy as np
@@ -23,13 +23,13 @@ def run_lenet():
 
     batch_size = 512
 
-    ds_train = MNIST('/tmp/mnist', download=True, transform=transform)
+    ds_train = MNIST(MNIST_TRAIN_PATH, download=True, transform=transform)
     ds_train, ds_valid = random_split(ds_train, [50000,10000])
 
     dl_train = DataLoader(ds_train, batch_size=batch_size, shuffle = True, num_workers=4)
     dl_valid = DataLoader(ds_train, batch_size=batch_size, shuffle = True, num_workers=4)
 
-    ds_test = MNIST("/tmp/mnist_test_", download=True, train = False, transform=transform)
+    ds_test = MNIST(MNIST_TEST_PATH, download=True, train = False, transform=transform)
     dl_test = DataLoader(ds_test, batch_size=batch_size, shuffle = False, num_workers = 4)
 
     model = LeNet_5(dl_train, dl_valid, num_classes=10)

@@ -10,11 +10,43 @@ from PIL import Image
 from pathlib import Path
 from torchvision.utils import make_grid
 from torch.utils.data import Dataset
+import pandas as pd
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-PICKLED_RECON_PATH = os.path.join(os.path.abspath(os.getcwd()), "pickled_recons.pkl")
 LAYER_NAMES = ["Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4 Final"]
-LENET_SAVE_PATH = os.path.join(os.path.abspath(os.getcwd()), "models", "lenet.pt")
+MNIST_TRAIN_PATH = '/tmp/mnist'
+MNIST_TEST_PATH = '/tmp/mnist_test_'
+HQA_MODEL_NAME = "hqa_model"
+
+
+CWD = os.path.abspath(os.getcwd())
+IMG_DIR_PATH = os.path.join(CWD, "data")
+SLICED_IMG_DIR_PATH = os.path.join(CWD, "sliced_data")
+PICKLED_RECON_PATH = os.path.join(CWD, "pickled_recons.pkl")
+MODELS_DIR = os.path.join(CWD, "models")
+LENET_SAVE_PATH = os.path.join(MODELS_DIR, "lenet.pt")
+HQA_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_model.pt")
+MNIST_ACCURACY_OUTPUT_FILE = os.path.join(CWD, "mnist_accuracies.csv")
+MNIST_ACC_FILE_COLS = ["Model", "Dataset", "Attack", "Average"] + [str(i) for i in range(10)]
+
+
+def add_mnist_accuracies(model_name, dataset_name, attack_name, accuracies):
+    accuracy_df = pd.read_csv(MNIST_ACCURACY_OUTPUT_FILE, index_col=False) \
+                    if os.path.exists(MNIST_ACCURACY_OUTPUT_FILE) \
+                    else pd.DataFrame(columns=MNIST_ACC_FILE_COLS)
+
+    row_dict = {"Model" : [model_name], 
+                "Dataset" : [dataset_name], 
+                "Attack" : [attack_name],
+                "Average" : [np.sum(accuracies) / len(accuracies)]}
+
+    for i, acc in enumerate(accuracies): 
+        row_dict[str(i)] = [acc]
+    
+    row_df = pd.DataFrame(row_dict, columns=MNIST_ACC_FILE_COLS)
+    accuracy_df = pd.concat([accuracy_df, row_df])
+    print(accuracy_df)
+    accuracy_df.to_csv(MNIST_ACCURACY_OUTPUT_FILE, index=False)
 
 class MyDataset(Dataset):
     def __init__(self, data, targets, transform=None):
@@ -101,7 +133,7 @@ def save_img(recon, label, path, idx):
 
 
 # LAYERS RECONSTRUCTION
-def recon_comparison(model, ds_test, names, descriptions):
+def recon_comparison(model, ds_test, names, descriptions, tile_images = False):
     images = []
     targets = []
     for idx in range(len(ds_test)):
@@ -129,9 +161,9 @@ def recon_comparison(model, ds_test, names, descriptions):
             output_dict[name].append(recon.cpu().numpy())
             images.append(recon.cpu().numpy()) 
 
-            recon_path = os.path.join(os.getcwd(), f"data_recon_{names.index(name)}", f'{label}')
-            orig_path = os.path.join(os.getcwd(), 'data_original', f'{label}')
-            jpg_path = os.path.join(os.getcwd(), "data_jpg", f"{label}")
+            recon_path = os.path.join(IMG_DIR_PATH, f"data_recon_{names.index(name)}", f'{label}')
+            orig_path = os.path.join(IMG_DIR_PATH, 'data_original', f'{label}')
+            jpg_path = os.path.join(IMG_DIR_PATH, "data_jpg", f"{label}")
             save_img(recon, label, recon_path, idx)
             save_img(img, label, orig_path, idx)
 
@@ -237,3 +269,17 @@ def show_original(idx, ds_test):
     image = x.squeeze()
     show_image(image)
     
+
+def crop(path, im, label, height, width):
+    imgwidth, imgheight = im.size 
+    path_t = os.path.join(path, 'tiles')
+    p = Path(path_t)
+    p.mkdir(parents=True,exist_ok=True)
+
+    k=0
+    for i in range(0,imgheight,height):
+        for j in range(0,imgwidth,width):
+            box = (j, i, j+width, i+height)
+            a = im.crop(box)
+            a.save(os.path.join(path,"tiles",f"{label}IMG-{k}.png"))
+            k +=1
