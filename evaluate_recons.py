@@ -1,10 +1,10 @@
 # Author: Matt Williams
-# Version: 10/29/2022
+# Version: 11/12/2022
 
 import pandas as pd
 import numpy as np
 from utils import MyDataset, PICKLED_RECON_PATH, LAYER_NAMES, EARLY_LENET_SAVE_PATH, device, IMG_DIR_PATH
-from utils import add_mnist_accuracies, LENET_SAVE_PATH
+from utils import add_accuracy_results, LENET_SAVE_PATH
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
@@ -39,7 +39,7 @@ def evaluate_dataset(model, model_name, dl_test, ds_name, attack = None):
 
     conf_mat = confusion_matrix(test_labels, predictions, normalize="true")
     attack_name = attack.attack if attack != None else "None"
-    add_mnist_accuracies(model_name, ds_name, attack_name, model.early_stopping, conf_mat.diagonal().tolist())
+    add_accuracy_results(model_name, ds_name, attack_name, model.early_stopping, conf_mat.diagonal().tolist())
 
 def eval_pickled_recons(model, model_name, column_name, attack = None):
     global transform
@@ -81,13 +81,13 @@ def main():
     #    eval_pickled_recons(lenet, "LeNet-5", layer)
 
     for root in img_root_names: 
-        eval_image_recons(early_lenet, "LeNet-5 w/ Early Stopping", root)
+        eval_image_recons(early_lenet, "LeNet-5", root)
         
 
     early_fgsm_attack = torchattacks.FGSM(early_lenet)
     
     for root in img_root_names: 
-        eval_image_recons(early_lenet, "LeNet-5 w/ Early Stopping", root, early_fgsm_attack)
+        eval_image_recons(early_lenet, "LeNet-5", root, early_fgsm_attack)
 
     del early_lenet
 
@@ -103,7 +103,6 @@ def main():
     
     for root in img_root_names: 
         eval_image_recons(lenet, "LeNet-5", root, fgsm_attack)
-
 
 
 if __name__ == "__main__": 

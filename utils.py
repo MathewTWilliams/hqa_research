@@ -27,27 +27,30 @@ MODELS_DIR = os.path.join(CWD, "models")
 EARLY_LENET_SAVE_PATH = os.path.join(MODELS_DIR, "early_stop_lenet.pt")
 LENET_SAVE_PATH = os.path.join(MODELS_DIR, "lenet.pt")
 HQA_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_model.pt")
-MNIST_ACCURACY_OUTPUT_FILE = os.path.join(CWD, "mnist_accuracies.csv")
-MNIST_ACC_FILE_COLS = ["Model", "Dataset", "Attack", "Early Stopping" "Average"] + [str(i) for i in range(10)]
+ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
+ACCURACY_FILE_COLS = ["Model", "Dataset", "Attack", "Early Stopping", "Average"] + [str(i) for i in range(10)]
 
 
-def add_mnist_accuracies(model_name, dataset_name, attack_name, early_stopping, accuracies):
-    accuracy_df = pd.read_csv(MNIST_ACCURACY_OUTPUT_FILE, index_col=False) \
-                    if os.path.exists(MNIST_ACCURACY_OUTPUT_FILE) \
-                    else pd.DataFrame(columns=MNIST_ACC_FILE_COLS)
+print(pd.read_csv(ACCURACY_OUTPUT_FILE, index_col=False))
+
+def add_accuracy_results(model_name, dataset_name, attack_name, early_stopping, accuracies):
+    accuracy_df = pd.read_csv(ACCURACY_OUTPUT_FILE, index_col=False) \
+                    if os.path.exists(ACCURACY_OUTPUT_FILE) \
+                    else pd.DataFrame(columns=ACCURACY_FILE_COLS)
 
     row_dict = {"Model" : [model_name], 
                 "Dataset" : [dataset_name], 
                 "Attack" : [attack_name],
+                "Early Stopping" : [early_stopping],
                 "Average" : [np.sum(accuracies) / len(accuracies)]}
 
     for i, acc in enumerate(accuracies): 
         row_dict[str(i)] = [acc]
     
-    row_df = pd.DataFrame(row_dict, columns=MNIST_ACC_FILE_COLS)
+    row_df = pd.DataFrame(row_dict, columns=ACCURACY_FILE_COLS)
     accuracy_df = pd.concat([accuracy_df, row_df], ignore_index=True)
     print(accuracy_df)
-    accuracy_df.to_csv(MNIST_ACCURACY_OUTPUT_FILE, index=False)
+    accuracy_df.to_csv(ACCURACY_OUTPUT_FILE, index=False)
 
 class MyDataset(Dataset):
     def __init__(self, data, targets, transform=None):
