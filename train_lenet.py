@@ -12,7 +12,7 @@ import torch
 import numpy as np
 from sklearn.metrics import classification_report
 
-def run_lenet(): 
+def run_lenet(early_stopping = False): 
     transform = transforms.Compose(
         [
             transforms.Resize(32), 
@@ -32,10 +32,10 @@ def run_lenet():
     ds_test = MNIST(MNIST_TEST_PATH, download=True, train = False, transform=transform)
     dl_test = DataLoader(ds_test, batch_size=batch_size, shuffle = False, num_workers = 4)
 
-    model = LeNet_5(dl_train, dl_valid, num_classes=10)
+    model = LeNet_5(dl_train, dl_valid, num_classes=10, early_stopping=early_stopping)
     model.to(device)
 
-    train_losses, valid_losses = model.run_epochs(n_epochs=25, validate=True)
+    train_losses, valid_losses = model.run_epochs(n_epochs=100, validate=True)
 
     
     plt.plot(range(1, len(train_losses) + 1), train_losses, label = "Training Loss")
@@ -66,4 +66,5 @@ def run_lenet():
         print(key,":", class_report[key])
 
 if __name__ == "__main__":
-    run_lenet()
+    run_lenet(True)
+    run_lenet(False)

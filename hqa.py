@@ -295,7 +295,7 @@ class HQA(nn.Module):
         z_q, _ = self.codebook.quantize(z_e)
         return z_q
 
-    def reconstruct_average(self, x, num_samples=10):
+    def reconstruct_average(self, x, num_samples=10, attack = None):
         """Average over stochastic edecodes"""
         b, c, h, w = x.shape
         result = torch.empty((num_samples, b, c, h, w)).to(device)

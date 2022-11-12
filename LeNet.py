@@ -7,16 +7,17 @@ from torch.nn import Module, Tanh, Softmax, CrossEntropyLoss
 from torch.optim import SGD
 from utils import device
 import numpy as np
-from utils import LENET_SAVE_PATH
+from utils import EARLY_LENET_SAVE_PATH, LENET_SAVE_PATH
 from tqdm import tqdm
 
 class LeNet_5(Module): 
-    def __init__(self, train_loader, valid_loader, num_classes): 
+    def __init__(self, train_loader, valid_loader, num_classes, early_stopping = False): 
         super(LeNet_5, self).__init__()
         self.__train_loader = train_loader
         self.__valid_loader = valid_loader
         self.__num_classes = num_classes
         self.__init_model()
+        self.early_stopping = early_stopping
         
 
     def __init_model(self): 
@@ -74,7 +75,7 @@ class LeNet_5(Module):
         x = self.__linear_layers(x)
         return x
 
-    def run_epochs(self, n_epochs, validate = True, early_stopping = False):
+    def run_epochs(self, n_epochs, validate = True):
         train_losses = []
         valid_losses = []
         min_valid_loss = np.inf
@@ -87,11 +88,12 @@ class LeNet_5(Module):
                 valid_loss = self.__validate()
                 valid_losses.append(valid_loss)
 
-                if early_stopping and valid_loss > min_valid_loss: 
+                if self.early_stopping and valid_loss > min_valid_loss: 
                     break
                 
                 min_valid_loss = valid_loss
-                torch.save(self, LENET_SAVE_PATH)
+                path = EARLY_LENET_SAVE_PATH if self.early_stopping else LENET_SAVE_PATH
+                torch.save(self, path)
 
         return train_losses, valid_losses
 

@@ -77,7 +77,7 @@ def main():
         count += 1
             
     grid_img = make_grid(results.cpu(), nrow=16)
-    show_image(grid_img[0,:,:])
+    #show_image(grid_img[0,:,:])
     
     # Final layer interpolations
     
@@ -99,7 +99,7 @@ def main():
             i += 1
                 
     grid_img = make_grid(results.cpu(), nrow=grid_x)
-    show_image(grid_img[0,:,:])
+    #       show_image(grid_img[0,:,:])
     
     #Stochastic Reconstructions
     

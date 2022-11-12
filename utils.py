@@ -24,13 +24,14 @@ IMG_DIR_PATH = os.path.join(CWD, "data")
 SLICED_IMG_DIR_PATH = os.path.join(CWD, "sliced_data")
 PICKLED_RECON_PATH = os.path.join(CWD, "pickled_recons.pkl")
 MODELS_DIR = os.path.join(CWD, "models")
+EARLY_LENET_SAVE_PATH = os.path.join(MODELS_DIR, "early_stop_lenet.pt")
 LENET_SAVE_PATH = os.path.join(MODELS_DIR, "lenet.pt")
 HQA_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_model.pt")
 MNIST_ACCURACY_OUTPUT_FILE = os.path.join(CWD, "mnist_accuracies.csv")
-MNIST_ACC_FILE_COLS = ["Model", "Dataset", "Attack", "Average"] + [str(i) for i in range(10)]
+MNIST_ACC_FILE_COLS = ["Model", "Dataset", "Attack", "Early Stopping" "Average"] + [str(i) for i in range(10)]
 
 
-def add_mnist_accuracies(model_name, dataset_name, attack_name, accuracies):
+def add_mnist_accuracies(model_name, dataset_name, attack_name, early_stopping, accuracies):
     accuracy_df = pd.read_csv(MNIST_ACCURACY_OUTPUT_FILE, index_col=False) \
                     if os.path.exists(MNIST_ACCURACY_OUTPUT_FILE) \
                     else pd.DataFrame(columns=MNIST_ACC_FILE_COLS)
@@ -44,7 +45,7 @@ def add_mnist_accuracies(model_name, dataset_name, attack_name, accuracies):
         row_dict[str(i)] = [acc]
     
     row_df = pd.DataFrame(row_dict, columns=MNIST_ACC_FILE_COLS)
-    accuracy_df = pd.concat([accuracy_df, row_df])
+    accuracy_df = pd.concat([accuracy_df, row_df], ignore_index=True)
     print(accuracy_df)
     accuracy_df.to_csv(MNIST_ACCURACY_OUTPUT_FILE, index=False)
 
