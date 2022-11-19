@@ -147,7 +147,7 @@ def main():
     # dataset = MyDataset(data, targets, transform=transform)
     # im_test = dataset[5]
     # dataloader = DataLoader(dataset, batch_size=5)
-
+    
     recon_data = [value for _ , value in output_dict.items()]
     columns = [name for name in LAYER_NAMES]
     columns.append("labels")

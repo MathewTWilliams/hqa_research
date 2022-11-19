@@ -27,7 +27,7 @@ def run_lenet(early_stopping = False):
     ds_train, ds_valid = random_split(ds_train, [50000,10000])
 
     dl_train = DataLoader(ds_train, batch_size=batch_size, shuffle = True, num_workers=4)
-    dl_valid = DataLoader(ds_train, batch_size=batch_size, shuffle = True, num_workers=4)
+    dl_valid = DataLoader(ds_valid, batch_size=batch_size, shuffle = True, num_workers=4)
 
     ds_test = MNIST(MNIST_TEST_PATH, download=True, train = False, transform=transform)
     dl_test = DataLoader(ds_test, batch_size=batch_size, shuffle = False, num_workers = 4)

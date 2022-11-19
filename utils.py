@@ -27,16 +27,38 @@ MODELS_DIR = os.path.join(CWD, "models")
 EARLY_LENET_SAVE_PATH = os.path.join(MODELS_DIR, "early_stop_lenet.pt")
 LENET_SAVE_PATH = os.path.join(MODELS_DIR, "lenet.pt")
 HQA_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_model.pt")
+
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
 ACCURACY_FILE_COLS = ["Model", "Dataset", "Attack", "Early Stopping", "Average"] + [str(i) for i in range(10)]
+COMPRESSION_RATE_FILE = os.path.join(CWD, "compression_rates.csv")
+COMPRESSION_FILE_COLS = ["Dataset", "Average Compression Size"]
+
+VISUAL_DIR = os.path.join(CWD, "Visuals")
 
 
-print(pd.read_csv(ACCURACY_OUTPUT_FILE, index_col=False))
+def access_results_df(filepath, columns): 
+    results_df = pd.read_csv(filepath, index_col= False) \
+                if os.path.exists(filepath) \
+                else pd.DataFrame(columns=columns)
+    return results_df
+
+
+def combine_save_df(results_df, row_df, filepath):
+    results_df = pd.concat([results_df, row_df], ignore_index=True)
+    results_df.to_csv(filepath, index = False) 
+
+
+def add_compression_rate(dataset_name, avg_comp_size):
+    compression_df = access_results_df(COMPRESSION_RATE_FILE, COMPRESSION_FILE_COLS)
+
+    row_dict = {"Dataset" : [dataset_name], 
+                "Average Compression Size": [avg_comp_size]}
+    
+    row_df = pd.DataFrame(row_dict, columns = COMPRESSION_FILE_COLS)
+    combine_save_df(compression_df, row_df, COMPRESSION_RATE_FILE)
 
 def add_accuracy_results(model_name, dataset_name, attack_name, early_stopping, accuracies):
-    accuracy_df = pd.read_csv(ACCURACY_OUTPUT_FILE, index_col=False) \
-                    if os.path.exists(ACCURACY_OUTPUT_FILE) \
-                    else pd.DataFrame(columns=ACCURACY_FILE_COLS)
+    accuracy_df = access_results_df(ACCURACY_OUTPUT_FILE, ACCURACY_FILE_COLS)
 
     row_dict = {"Model" : [model_name], 
                 "Dataset" : [dataset_name], 
@@ -48,9 +70,7 @@ def add_accuracy_results(model_name, dataset_name, attack_name, early_stopping, 
         row_dict[str(i)] = [acc]
     
     row_df = pd.DataFrame(row_dict, columns=ACCURACY_FILE_COLS)
-    accuracy_df = pd.concat([accuracy_df, row_df], ignore_index=True)
-    print(accuracy_df)
-    accuracy_df.to_csv(ACCURACY_OUTPUT_FILE, index=False)
+    combine_save_df(accuracy_df, row_df, ACCURACY_OUTPUT_FILE)
 
 class MyDataset(Dataset):
     def __init__(self, data, targets, transform=None):
@@ -66,7 +86,6 @@ class MyDataset(Dataset):
             x = Image.fromarray(self.data[index] * 255, mode = "F")
             x = self.transform(x)
 
-        
         return x, y
     
     def __len__(self):
@@ -172,8 +191,8 @@ def recon_comparison(model, ds_test, names, descriptions, tile_images = False):
             save_img(img, label, orig_path, idx)
 
             im = Image.open(os.path.join(orig_path, f"img{label}_{idx}.png"))
-            print("The size of the image before conversion :", end = "")
-            print(os.path.getsize(os.path.join(orig_path, f"img{label}_{idx}.png")))
+            #print("The size of the image before conversion :", end = "")
+            #print(os.path.getsize(os.path.join(orig_path, f"img{label}_{idx}.png")))
 
             #converting to jpg
             gr_im = im.convert("L")
@@ -183,8 +202,8 @@ def recon_comparison(model, ds_test, names, descriptions, tile_images = False):
             p.mkdir(parents = True, exist_ok=True)
 
             gr_im.save(os.path.join(jpg_path, f"img{label}_{idx}.jpeg"))
-            print("The size of the image after conversion : ", end = "")
-            print(os.path.getsize(os.path.join(jpg_path, f"img{label}_{idx}.jpeg")))
+            #print("The size of the image after conversion : ", end = "")
+            #print(os.path.getsize(os.path.join(jpg_path, f"img{label}_{idx}.jpeg")))
     
         print(f"{name}: {description}")
         output = np.hstack(images)
