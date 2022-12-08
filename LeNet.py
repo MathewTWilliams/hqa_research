@@ -1,28 +1,52 @@
 # Author: Matt Williams
-# Version: 10/28/2022
+# Version: 12/6/2022
 
 import torch
-from torch.nn import Linear, Conv2d, AvgPool2d, Sequential
-from torch.nn import Module, Tanh, Softmax, CrossEntropyLoss
-from torch.optim import SGD
-from utils import device
+from torch.nn import Linear, Conv2d, Sequential, Dropout
+from torch.nn import Module, Softmax, CrossEntropyLoss, Flatten
+from utils import device, MODELS_DIR
 import numpy as np
-from utils import EARLY_LENET_SAVE_PATH, LENET_SAVE_PATH
 from tqdm import tqdm
+import torch.nn.functional as F
+import os
 
-class LeNet_5(Module): 
-    def __init__(self, train_loader, valid_loader, num_classes, early_stopping = False): 
+class LeNet_5(Module):
+   
+    def __init__(self, train_loader, valid_loader, num_classes, loss_function, Pooling_Type,
+                 Activ_Func_Type, save_path, add_normalization = False, pad_first_conv = True, 
+                 early_stopping = False):
+        '''
+        Args:
+        - train_loader: instance of DataLoader containing our training data.
+        - valid_loader: instance of DataLoader containing out validation data.
+        - num_classes: how many classes are contained in the data.
+        - loss_function: an instance of the loss function to use.
+        - pooling_type: a reference (not instance) to the type of pooling layer to use (e.g. MaxPool2d, AvgPool2d).
+        - activ_func: a reference (not instance) to the type of activation function to use.
+        - save_path: file path to save this model after an epoch.
+        - pad_first_conv: boolean to determine if the first convolution layer should be padded or not. If
+            the first convolution layer is padded, then an additional pooling layer is added.
+        - early_stopping: should the model stop training early if validation loss increases.
+        ''' 
         super(LeNet_5, self).__init__()
         self.__train_loader = train_loader
         self.__valid_loader = valid_loader
         self.__num_classes = num_classes
-        self.__init_model()
-        self.early_stopping = early_stopping
-        
+        self.__early_stopping = early_stopping
+        self.__loss_function = loss_function.to(device)
+        self.__save_path = save_path
 
-    def __init_model(self): 
+        if early_stopping: 
+            new_file_name = "early_" + save_path.split("\\")[-1]
+            self.__save_path = os.path.join(MODELS_DIR, new_file_name)
+
+        self.__init_model(Pooling_Type, Activ_Func_Type, pad_first_conv)
+
+    def __init_model(self, Pooling_Type, Activ_Fun, pad_first_conv): 
         
-        conv_1 = Conv2d(in_channels=1, out_channels=6, kernel_size=5, padding = 2, stride = 1)
+        first_padding = 2 if pad_first_conv else 0
+
+        conv_1 = Conv2d(in_channels=1, out_channels=6, kernel_size=5, padding = first_padding, stride = 1)
         torch.nn.init.xavier_uniform_(conv_1.weight)
         torch.nn.init.zeros_(conv_1.bias)
 
@@ -36,15 +60,17 @@ class LeNet_5(Module):
 
         self.__cnn_layers = Sequential(
             conv_1,
-            Tanh(), 
-            AvgPool2d(kernel_size=2, stride = 2),
+            Activ_Fun(),
+            Pooling_Type(kernel_size=2, stride = 2),
             conv_2,
-            Tanh(),
-            AvgPool2d(kernel_size = 2, stride = 2),
+            Activ_Fun(),
+            Pooling_Type(kernel_size = 2, stride = 2),
             conv_3, 
-            Tanh(),
-            AvgPool2d(kernel_size=2, stride = 1)
+            Activ_Fun(),
         )
+
+        if pad_first_conv:
+            self.__cnn_layers.append(Pooling_Type(kernel_size = 2, stride = 1))
 
         linear_1 = Linear(120, out_features=84)
         torch.nn.init.xavier_uniform_(linear_1.weight)
@@ -55,23 +81,22 @@ class LeNet_5(Module):
         torch.nn.init.zeros_(linear_2.bias)
 
         self.__linear_layers = Sequential(
+            Flatten(),
             linear_1,
-            Tanh(),
-            linear_2 
-            #Softmax(dim=-1)
-            # No Softmax layer at the end
-            # Py-Torch's implementation of Cross Entropy loss uses
-            # LogSoftmax with negative log likelihood loss to acheive the
-            # same results
+            Dropout(),
+            Activ_Fun(),
+            linear_2, 
         )
 
-        self.__optimizer = SGD(self.parameters(), lr = 0.01, momentum = 0.9)
+        if not isinstance(self.__loss_function, CrossEntropyLoss):
+            self.__linear_layers.append(Softmax(dim = -1))
 
-        self.__loss_function = CrossEntropyLoss().to(device)
+
+    def set_optimizer(self, optimizer): 
+        self.__optimizer = optimizer
 
     def forward(self, x):
         x = self.__cnn_layers(x)
-        x = x.view(x.size(0), -1)
         x = self.__linear_layers(x)
         return x
 
@@ -88,12 +113,12 @@ class LeNet_5(Module):
                 valid_loss = self.__validate()
                 valid_losses.append(valid_loss)
 
-                if self.early_stopping and valid_loss > min_valid_loss: 
+                if self.__early_stopping and valid_loss > min_valid_loss: 
                     break
                 
                 min_valid_loss = valid_loss
-                path = EARLY_LENET_SAVE_PATH if self.early_stopping else LENET_SAVE_PATH
-                torch.save(self, path)
+
+            torch.save(self, self.__save_path)
 
         return train_losses, valid_losses
 
@@ -101,7 +126,10 @@ class LeNet_5(Module):
         training_loss = 0
         self.train(True)
         for data, labels in self.__train_loader:
+            self.train()
             data = data.to(device)
+            if not isinstance(self.__loss_function, CrossEntropyLoss):
+                labels = F.one_hot(labels).float()
             labels = labels.to(device)
 
             self.__optimizer.zero_grad()

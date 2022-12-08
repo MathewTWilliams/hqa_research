@@ -3,8 +3,7 @@
 
 import pandas as pd
 import numpy as np
-from utils import MyDataset, PICKLED_RECON_PATH, LAYER_NAMES, EARLY_LENET_SAVE_PATH, device, IMG_DIR_PATH
-from utils import add_accuracy_results, LENET_SAVE_PATH
+from utils import *
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
@@ -13,15 +12,19 @@ import torch
 from sklearn.metrics import confusion_matrix
 import torchattacks
 
-
-BATCH_SIZE = 512
-
 transform = transforms.Compose(
         [
             transforms.Grayscale(num_output_channels=1),
             transforms.ToTensor()
         ]
     )
+
+img_root_names = [ "data_jpg",
+                "data_recon_0", 
+                "data_recon_1", 
+                "data_recon_2", 
+                "data_recon_3", 
+                "data_recon_4"]
 
 def evaluate_dataset(model, model_name, dl_test, ds_name, attack = None):
     all_outputs = torch.Tensor().to(device)
@@ -41,18 +44,18 @@ def evaluate_dataset(model, model_name, dl_test, ds_name, attack = None):
     attack_name = attack.attack if attack != None else "None"
     add_accuracy_results(model_name, ds_name, attack_name, model.early_stopping, conf_mat.diagonal().tolist())
 
-def eval_pickled_recons(model, model_name, column_name, attack = None):
+def eval_pickled_recons(model, model_name, column_name, pickle_path, attack = None):
     global transform
 
     columns = [layer_name for layer_name in LAYER_NAMES]
     columns.append("labels")
-    recon_df = pd.DataFrame(data = pd.read_pickle(PICKLED_RECON_PATH), columns=columns)
+    recon_df = pd.DataFrame(data = pd.read_pickle(pickle_path), columns=columns)
 
     targets = recon_df["labels"].to_numpy()
     recon_df = recon_df.drop(columns="labels")
 
     ds_test = MyDataset(recon_df[column_name].to_numpy(), targets, transform)
-    dl_test = DataLoader(ds_test, BATCH_SIZE, shuffle=False, num_workers=4)
+    dl_test = DataLoader(ds_test, MNIST_BATCH_SIZE, shuffle=False, num_workers=4)
 
     evaluate_dataset(model, model_name, dl_test, column_name, attack)
 
@@ -60,49 +63,66 @@ def eval_pickled_recons(model, model_name, column_name, attack = None):
 def eval_image_recons(model, model_name, root, attack = None):
     global transform
     ds_test = ImageFolder(os.path.join(IMG_DIR_PATH, root), transform=transform)
-    dl_test = DataLoader(ds_test, batch_size=BATCH_SIZE, shuffle = False, num_workers=4)
+    dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers=4)
     evaluate_dataset(model, model_name, dl_test, root, attack)
     
-
-        
 def main():
-    early_lenet = torch.load(EARLY_LENET_SAVE_PATH)
-    early_lenet.eval()
 
-    img_root_names = ["data_original",
-                    "data_jpg",
-                    "data_recon_0", 
-                    "data_recon_1", 
-                    "data_recon_2", 
-                    "data_recon_3", 
-                    "data_recon_4"]
+    global img_root_names
 
-    #for layer in LAYER_NAMES:
-    #    eval_pickled_recons(lenet, "LeNet-5", layer)
+    # Traditional LeNet MNIST
+    trad_lenet_mnist = torch.load(TRAD_LENET_MNIST_PATH)
+    trad_lenet_mnist.eval()
 
     for root in img_root_names: 
-        eval_image_recons(early_lenet, "LeNet-5", root)
-        
+        eval_image_recons(trad_lenet_mnist, "Trad. LeNet", root)
 
-    early_fgsm_attack = torchattacks.FGSM(early_lenet)
+    fgsm_attack = torchattacks.FGSM(trad_lenet_mnist)
+
+    for root in img_root_names:
+        eval_image_recons(trad_lenet_mnist, "Trad. LeNet", root, fgsm_attack)
+
+    del trad_lenet_mnist
+
+    # Modern LeNet MNIST
+    modern_lenet_mnist = torch.load(MOD_LENET_MNIST_PATH)
+    modern_lenet_mnist.eval()
+
+    for root in img_root_names: 
+        eval_image_recons(modern_lenet_mnist, "Modern LeNet", root)
+
+    fgsm_attack = torchattacks.FGSM(modern_lenet_mnist)
+
+    for root in img_root_names:
+        eval_image_recons(modern_lenet_mnist, "Modern LeNet", root, fgsm_attack)
+
+    del modern_lenet_mnist
+
+    # Traditional LeNet Fashion MNIST
+    trad_lenet_fash_mnist = torch.load(TRAD_LENET_FASH_MNIST_PATH)
+    trad_lenet_fash_mnist.eval()
+
+    for root in img_root_names:
+        eval_image_recons(trad_lenet_fash_mnist, "Trad. LeNet", root)
+
+    fgsm_attack = torchattacks.FGSM(trad_lenet_fash_mnist)
+
+    for root in img_root_names:
+        eval_image_recons(trad_lenet_fash_mnist, "Trad. LeNet", root, fgsm_attack)
+
+    del trad_lenet_fash_mnist
     
-    for root in img_root_names: 
-        eval_image_recons(early_lenet, "LeNet-5", root, early_fgsm_attack)
+    #Modern LeNet Fashion Mnist
+    mod_lenet_fash_mnist = torch.load(MOD_LENET_FASH_MNIST_PATH)
+    mod_lenet_fash_mnist.eval()
 
-    del early_lenet
+    for root in img_root_names:
+        eval_image_recons(mod_lenet_fash_mnist, "Modern LeNet", root)
 
-    lenet = torch.load(LENET_SAVE_PATH)
-    lenet.eval()
+    fgsm_attack = torchattacks.FGSM(mod_lenet_fash_mnist)
 
-
-    for root in img_root_names: 
-        eval_image_recons(lenet, "LeNet-5", root)
-        
-
-    fgsm_attack = torchattacks.FGSM(lenet)
-    
-    for root in img_root_names: 
-        eval_image_recons(lenet, "LeNet-5", root, fgsm_attack)
+    for root in img_root_names:
+        eval_image_recons(mod_lenet_fash_mnist, "Modern LeNet", root, fgsm_attack)
 
 
 if __name__ == "__main__": 

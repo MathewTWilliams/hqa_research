@@ -59,12 +59,12 @@ def main(model):
         conf_mat = confusion_matrix(cur_labels.tolist(), predictions, normalize = "true", labels = [i for i in range(10)])
         results_dict[cur_label] = conf_mat[cur_label][cur_label]
 
-    mean_accuracies = []
+    '''mean_accuracies = []
     for key in results_dict:
         mean_accuracies.append(np.mean(results_dict[key]))
 
-    add_accuracy_results("LeNet(14 recons/datapoint)", "data_original", fgsm_attack.attack, model.early_stopping, mean_accuracies)
+    add_accuracy_results("LeNet(14 recons/datapoint)", "data_original", fgsm_attack.attack, model.early_stopping, mean_accuracies)'''
 
 if __name__ == "__main__": 
     main(torch.load(EARLY_LENET_SAVE_PATH))
-    main(torch.load(LENET_SAVE_PATH))
+    #main(torch.load(LENET_SAVE_PATH))

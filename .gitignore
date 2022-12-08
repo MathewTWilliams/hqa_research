@@ -1,10 +1,8 @@
 # Custom
-data_jpg/
-data_original/
-data_recon_*/
-/pickled_recons.pkl
-models/
-mnist_accuracies.csv
+/data*
+/models*
+/Pickle Files*
+
 
 
 # Byte-compiled / optimized / DLL files

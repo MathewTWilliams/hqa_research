@@ -1,7 +1,7 @@
 import torch
 import os
 from torchvision import transforms
-from torchvision.datasets import MNIST
+from torchvision.datasets import MNIST, FashionMNIST, EMNIST
 from torch.utils.data import DataLoader
 from training import train_full_stack
 from utils import *
@@ -11,7 +11,7 @@ from hqa import *
 import pandas as pd
 
 
-def main():
+def main(download_train_path, download_test_path, model_name, model_save_path, img_save_dir, pickle_path, Dataset_Type):
     
     print(f"CUDA={torch.cuda.is_available()}", os.environ.get("CUDA_VISIBLE_DEVICES"))
     #z = np.random.rand(5, 5)
@@ -19,20 +19,12 @@ def main():
     
     #MNIST DATASETS
     
-    transform = transforms.Compose(
-        [
-            transforms.Resize(32),
-            transforms.CenterCrop(32),
-            transforms.ToTensor(),
-        ]
-    )
-    batch_size = 512
-    ds_train = MNIST(MNIST_TRAIN_PATH, download=True, transform=transform)
-    dl_train = DataLoader(ds_train, batch_size=batch_size, shuffle=True, num_workers=4)
+    ds_train = Dataset_Type(download_train_path, download=True, transform=MNIST_TRANSFORM)
+    dl_train = DataLoader(ds_train, batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=4)
     
     
-    ds_test = MNIST(MNIST_TEST_PATH, download=True, train=False, transform=transform)
-    dl_test = DataLoader(ds_test, batch_size=batch_size, num_workers=4)
+    ds_test = Dataset_Type(download_test_path, download=True, train=False, transform=MNIST_TRANSFORM)
+    dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, num_workers=4)
     test_x, _ = next(iter(dl_test))
     test_x = test_x.to(device)
     
@@ -42,10 +34,10 @@ def main():
     os.makedirs(MODELS_DIR, exist_ok=True)
     
     
-    if not os.path.isfile(HQA_SAVE_PATH):
-        hqa_model = train_full_stack(dl_train, test_x, MODELS_DIR, HQA_MODEL_NAME, epochs=5)
+    if not os.path.isfile(model_save_path):
+        hqa_model = train_full_stack(dl_train, test_x, MODELS_DIR, model_name, epochs=5)
     else:
-        hqa_model = torch.load(HQA_SAVE_PATH)
+        hqa_model = torch.load(model_save_path)
     
     hqa_model.eval()
         
@@ -58,7 +50,7 @@ def main():
     ]
 
     # Show reconstruction comparison over each layer in HQA
-    output_dict, targets = recon_comparison(hqa_model, ds_test, LAYER_NAMES, layer_descriptions)
+    output_dict, targets = recon_comparison(hqa_model, ds_test, LAYER_NAMES, layer_descriptions, img_save_dir)
     
     
     # Layer distortions
@@ -152,11 +144,37 @@ def main():
     columns = [name for name in LAYER_NAMES]
     columns.append("labels")
     recon_df = pd.DataFrame(data = list(zip(*recon_data, targets)), columns=columns)
-    recon_df.to_pickle(PICKLED_RECON_PATH)
+    recon_df.to_pickle(pickle_path)
 
 
     
 
 if __name__ == "__main__":
     set_seeds()
-    main()
+    
+    # MNIST
+    #main(MNIST_TRAIN_PATH, 
+    #    MNIST_TEST_PATH,
+    #    HQA_MNIST_MODEL_NAME,
+    #   HQA_MNIST_SAVE_PATH,
+    #   IMG_MNIST_DIR_PATH,
+    #    MNIST_PICKLED_RECON_PATH,
+    #    MNIST)
+
+    # FASHION MNIST
+    #main(FASH_MNIST_TRAIN_PATH,
+    #    FASH_MNIST_TEST_PATH,
+    #    HQA_FASH_MNIST_MODEL_NAME,
+    #    HQA_FASH_MNIST_SAVE_PATH,
+    #    IMG_FASH_MNIST_DIR_PATH,
+    #    FASH_MNIST_PICKLED_RECON_PATH,
+    #    FashionMNIST)
+
+    # EMNIST
+    main(EMNIST_TRAIN_PATH, 
+        EMNIST_TEST_PATH,
+        HQA_EMNIST_MODEL_NAME,
+        HQA_EMNIST_SAVE_PATH,
+        IMG_EMNIST_DIR_PATH,
+        EMNIST_PICKLED_RECON_PATH,
+        EMNIST)

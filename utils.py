@@ -11,30 +11,59 @@ from pathlib import Path
 from torchvision.utils import make_grid
 from torch.utils.data import Dataset
 import pandas as pd
+from torchvision import transforms
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LAYER_NAMES = ["Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4 Final"]
+
+# File paths for downloading mnist related datasets
 MNIST_TRAIN_PATH = '/tmp/mnist'
 MNIST_TEST_PATH = '/tmp/mnist_test_'
-HQA_MODEL_NAME = "hqa_model"
+FASH_MNIST_TRAIN_PATH = '/temp/fasion_mnist'
+FASH_MNIST_TEST_PATH = '/temp/fasion_mnist_test_'
+EMNIST_TRAIN_PATH = '/tmp/emnist'
+EMNIST_TEST_PATH = '/tmp/emnist_test_'
 
+HQA_MNIST_MODEL_NAME = "hqa_mnist_model"
+HQA_FASH_MNIST_MODEL_NAME = "hqa_fash_mnist_model"
+HQA_EMNIST_MODEL_NAME = "hqa_emnist_model"
 
 CWD = os.path.abspath(os.getcwd())
+PICKLED_DIR = os.path.join(CWD, "Pickle Files")
+
+#Saved data file paths (original data and constructions)
 IMG_DIR_PATH = os.path.join(CWD, "data")
-SLICED_IMG_DIR_PATH = os.path.join(CWD, "sliced_data")
-PICKLED_RECON_PATH = os.path.join(CWD, "pickled_recons.pkl")
+IMG_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "MNIST")
+IMG_FASH_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Fashion_MNIST")
+IMG_EMNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "EMNIST")
+MNIST_PICKLED_RECON_PATH = os.path.join(PICKLED_DIR, "mnist_pickled_recons.pkl")
+FASH_MNIST_PICKLED_RECON_PATH = os.path.join(PICKLED_DIR, "fash_mnist_pickled_recons.pkl")
+EMNIST_PICKLED_RECON_PATH = os.path.join(PICKLED_DIR, "emnist_pickled_recons.pkl")
+
+#Model relatd file paths
 MODELS_DIR = os.path.join(CWD, "models")
-EARLY_LENET_SAVE_PATH = os.path.join(MODELS_DIR, "early_stop_lenet.pt")
-LENET_SAVE_PATH = os.path.join(MODELS_DIR, "lenet.pt")
-HQA_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_model.pt")
+HQA_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model.pt")
+HQA_FASH_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_fash_mnist_model.pt")
+HQA_EMNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_emnist_model.pt")
+
+TRAD_LENET_MNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_mnist.pt")
+TRAD_LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_fash_mnist.pt")
+TRAD_LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_emnist.pt")
+MOD_LENET_MNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_mnist.pt")
+MOD_LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_fash_mnist.pt")
+MOD_LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_emnist.pt")
 
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
-ACCURACY_FILE_COLS = ["Model", "Dataset", "Attack", "Early Stopping", "Average"] + [str(i) for i in range(10)]
-COMPRESSION_RATE_FILE = os.path.join(CWD, "compression_rates.csv")
-COMPRESSION_FILE_COLS = ["Dataset", "Average Compression Size"]
-
+ACCURACY_FILE_COLS = ["Model", "Dataset", "Attack", "Average"] + [str(i) for i in range(10)]
 VISUAL_DIR = os.path.join(CWD, "Visuals")
 
+MNIST_TRANSFORM = transforms.Compose([
+    transforms.Resize(32),
+    transforms.CenterCrop(32),
+    transforms.ToTensor()
+])
+
+MNIST_BATCH_SIZE = 512
 
 def access_results_df(filepath, columns): 
     results_df = pd.read_csv(filepath, index_col= False) \
@@ -47,23 +76,12 @@ def combine_save_df(results_df, row_df, filepath):
     results_df = pd.concat([results_df, row_df], ignore_index=True)
     results_df.to_csv(filepath, index = False) 
 
-
-def add_compression_rate(dataset_name, avg_comp_size):
-    compression_df = access_results_df(COMPRESSION_RATE_FILE, COMPRESSION_FILE_COLS)
-
-    row_dict = {"Dataset" : [dataset_name], 
-                "Average Compression Size": [avg_comp_size]}
-    
-    row_df = pd.DataFrame(row_dict, columns = COMPRESSION_FILE_COLS)
-    combine_save_df(compression_df, row_df, COMPRESSION_RATE_FILE)
-
-def add_accuracy_results(model_name, dataset_name, attack_name, early_stopping, accuracies):
+def add_accuracy_results(model_name, dataset_name, attack_name, accuracies):
     accuracy_df = access_results_df(ACCURACY_OUTPUT_FILE, ACCURACY_FILE_COLS)
 
     row_dict = {"Model" : [model_name], 
                 "Dataset" : [dataset_name], 
                 "Attack" : [attack_name],
-                "Early Stopping" : [early_stopping],
                 "Average" : [np.sum(accuracies) / len(accuracies)]}
 
     for i, acc in enumerate(accuracies): 
@@ -156,7 +174,7 @@ def save_img(recon, label, path, idx):
 
 
 # LAYERS RECONSTRUCTION
-def recon_comparison(model, ds_test, names, descriptions, tile_images = False):
+def recon_comparison(model, ds_test, names, descriptions, img_save_dir):
     images = []
     targets = []
     for idx in range(len(ds_test)):
@@ -184,9 +202,9 @@ def recon_comparison(model, ds_test, names, descriptions, tile_images = False):
             output_dict[name].append(recon.cpu().numpy())
             images.append(recon.cpu().numpy()) 
 
-            recon_path = os.path.join(IMG_DIR_PATH, f"data_recon_{names.index(name)}", f'{label}')
-            orig_path = os.path.join(IMG_DIR_PATH, 'data_original', f'{label}')
-            jpg_path = os.path.join(IMG_DIR_PATH, "data_jpg", f"{label}")
+            recon_path = os.path.join(img_save_dir, f"data_recon_{names.index(name)}", f'{label}')
+            orig_path = os.path.join(img_save_dir, 'data_original', f'{label}')
+            jpg_path = os.path.join(img_save_dir, "data_jpg", f"{label}")
             save_img(recon, label, recon_path, idx)
             save_img(img, label, orig_path, idx)
 
@@ -224,8 +242,6 @@ def get_rate_upper_bound(model, example_input):
     rate_bound = top_indices[0].numel() * np.log2(model.codebook.codebook_slots)
 
     return rate_bound
-
-
 
 def test(model, dl_test):
     model.eval()
