@@ -54,7 +54,7 @@ MOD_LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_fash_mnist.pt")
 MOD_LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_emnist.pt")
 
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
-ACCURACY_FILE_COLS = ["Model", "Dataset", "Attack", "Average"] + [str(i) for i in range(10)]
+ACCURACY_FILE_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Average Accuracy"] 
 VISUAL_DIR = os.path.join(CWD, "Visuals")
 
 MNIST_TRANSFORM = transforms.Compose([
@@ -65,30 +65,23 @@ MNIST_TRANSFORM = transforms.Compose([
 
 MNIST_BATCH_SIZE = 512
 
-def access_results_df(filepath, columns): 
-    results_df = pd.read_csv(filepath, index_col= False) \
-                if os.path.exists(filepath) \
-                else pd.DataFrame(columns=columns)
-    return results_df
 
+def add_accuracy_results(model_name, dataset_name, reconstruction, attack_name, avg_accuracy):
 
-def combine_save_df(results_df, row_df, filepath):
-    results_df = pd.concat([results_df, row_df], ignore_index=True)
-    results_df.to_csv(filepath, index = False) 
-
-def add_accuracy_results(model_name, dataset_name, attack_name, accuracies):
-    accuracy_df = access_results_df(ACCURACY_OUTPUT_FILE, ACCURACY_FILE_COLS)
+    results_df = pd.read_csv(ACCURACY_OUTPUT_FILE, index_col = False) \
+                if os.path.exists(ACCURACY_OUTPUT_FILE) \
+                else pd.DataFrame(columns=ACCURACY_FILE_COLS)
 
     row_dict = {"Model" : [model_name], 
                 "Dataset" : [dataset_name], 
+                "Reconstruction" : [reconstruction],
                 "Attack" : [attack_name],
-                "Average" : [np.sum(accuracies) / len(accuracies)]}
-
-    for i, acc in enumerate(accuracies): 
-        row_dict[str(i)] = [acc]
+                "Average" : [avg_accuracy]}
     
     row_df = pd.DataFrame(row_dict, columns=ACCURACY_FILE_COLS)
-    combine_save_df(accuracy_df, row_df, ACCURACY_OUTPUT_FILE)
+    results_df.loc[len(results_df.values)] = row_df
+
+    results_df.to_csv(ACCURACY_OUTPUT_FILE, index = False)
 
 class MyDataset(Dataset):
     def __init__(self, data, targets, transform=None):
