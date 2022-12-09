@@ -11,7 +11,7 @@ from hqa import *
 import pandas as pd
 
 
-def main(download_train_path, download_test_path, model_name, model_save_path, img_save_dir, pickle_path, Dataset_Type):
+def main(download_train_path, download_test_path, model_name, model_save_path, img_save_dir, pickle_path, Dataset_Type, split = None):
     
     print(f"CUDA={torch.cuda.is_available()}", os.environ.get("CUDA_VISIBLE_DEVICES"))
     #z = np.random.rand(5, 5)
@@ -19,11 +19,16 @@ def main(download_train_path, download_test_path, model_name, model_save_path, i
     
     #MNIST DATASETS
     
-    ds_train = Dataset_Type(download_train_path, download=True, transform=MNIST_TRANSFORM)
+    ds_train = Dataset_Type(download_train_path, download=True, transform=MNIST_TRANSFORM) \
+                if split == None else \
+                Dataset_Type(download_train_path, download=True, transform=MNIST_TRANSFORM, split = split)
     dl_train = DataLoader(ds_train, batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=4)
     
     
-    ds_test = Dataset_Type(download_test_path, download=True, train=False, transform=MNIST_TRANSFORM)
+    ds_test = Dataset_Type(download_test_path, download=True, train=False, transform=MNIST_TRANSFORM) \
+                if split == None else \
+                Dataset_Type(download_test_path, download=True, train=False, transform=MNIST_TRANSFORM, split = split)
+
     dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, num_workers=4)
     test_x, _ = next(iter(dl_test))
     test_x = test_x.to(device)
@@ -54,7 +59,7 @@ def main(download_train_path, download_test_path, model_name, model_save_path, i
     
     
     # Layer distortions
-    distortions, rates = get_rd_data(hqa_model,dl_test)
+    '''distortions, rates = get_rd_data(hqa_model,dl_test)
     print("Name \t\t Distortion \t Rate")
     for dist, rate, name in zip(distortions, rates, LAYER_NAMES):
         print(f"{name} \t {dist:.4f} \t {int(rate)}")
@@ -138,7 +143,7 @@ def main(download_train_path, download_test_path, model_name, model_save_path, i
     # transform = transforms.Compose([transforms.Resize(64), transforms.ToTensor()])
     # dataset = MyDataset(data, targets, transform=transform)
     # im_test = dataset[5]
-    # dataloader = DataLoader(dataset, batch_size=5)
+    # dataloader = DataLoader(dataset, batch_size=5)'''
     
     recon_data = [value for _ , value in output_dict.items()]
     columns = [name for name in LAYER_NAMES]
@@ -177,4 +182,5 @@ if __name__ == "__main__":
         HQA_EMNIST_SAVE_PATH,
         IMG_EMNIST_DIR_PATH,
         EMNIST_PICKLED_RECON_PATH,
-        EMNIST)
+        EMNIST, 
+        "balanced")

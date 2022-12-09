@@ -31,7 +31,7 @@ def save_training_metrics(model, dl_test, train_losses, valid_losses, save_visua
     plt.ylabel("Losses")
     plt.title("Training Loss values")
     plt.legend()
-    plt.save(os.path.join(VISUAL_DIR, save_visual_name))
+    plt.savefig(os.path.join(VISUAL_DIR, save_visual_name))
     plt.clf()
 
     all_outputs = torch.Tensor().to(device)
@@ -47,7 +47,7 @@ def save_training_metrics(model, dl_test, train_losses, valid_losses, save_visua
     softmax_probs = torch.exp(all_outputs).cpu()
     predictions = np.argmax(softmax_probs, axis = -1)
 
-    conf_mat = confusion_matrix(test_labels, predictions, normalize=True)
+    conf_mat = confusion_matrix(test_labels, predictions, normalize="true")
     add_accuracy_results(model_name, ds_name, "None", conf_mat.diagonal().tolist())
 
 
@@ -60,13 +60,13 @@ def get_dataloaders(Data_Set_Type, train_download_path, test_download_path, vali
     - validate: should validation dataloader be made.
     '''
     ds_test = Data_Set_Type(test_download_path, download=True, train = False, transform=MNIST_TRANSFORM) \
-                if split == "None" else \
+                if split == None else \
                 Data_Set_Type(test_download_path, download=True, train = False, split = split, transform=MNIST_TRANSFORM)
 
     dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = 4)
 
     ds_train = Data_Set_Type(train_download_path, download=True, transform=MNIST_TRANSFORM) \
-                if split == "None" else \
+                if split == None else \
                 Data_Set_Type(train_download_path, download=True, split = split, transform=MNIST_TRANSFORM)    
 
     ds_valid = None
@@ -133,7 +133,7 @@ def run_modern_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, d
     model = LeNet_5(dl_train,
                     dl_valid,
                     num_classes,
-                    MSELoss(),
+                    CrossEntropyLoss(),
                     MaxPool2d,
                     ReLU,
                     save_path,
@@ -144,12 +144,12 @@ def run_modern_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, d
     model = model.to(device)
     model.set_optimizer(Adam(model.parameters(), lr = 0.01))
     train_losses, valid_losses = model.run_epochs(n_epochs=100, validate=validate)
-    save_training_metrics(model, dl_test, train_losses, valid_losses, save_visual_name, ds_name)
+    save_training_metrics(model, dl_test, train_losses, valid_losses, save_visual_name, "Mod. LeNet", ds_name)
 
 if __name__ == "__main__":
 
     # For traditional LeNet with regular mnist
-    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(MNIST, MNIST_TRAIN_PATH, MNIST_TEST_PATH)
+    '''dl_train, dl_valid, dl_test, ds_name = get_dataloaders(MNIST, MNIST_TRAIN_PATH, MNIST_TEST_PATH, False)
     run_trad_lenet(dl_train, 
                     dl_valid, 
                     dl_test,
@@ -160,7 +160,7 @@ if __name__ == "__main__":
                     )
     
     # For traditional LeNet with fashion mnist
-    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(FashionMNIST, FASH_MNIST_TRAIN_PATH, FASH_MNIST_TEST_PATH)
+    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(FashionMNIST, FASH_MNIST_TRAIN_PATH, FASH_MNIST_TEST_PATH, False)
     run_trad_lenet(dl_train,
                     dl_valid,
                     dl_test,
@@ -170,17 +170,17 @@ if __name__ == "__main__":
                      10)
 
     # For traditional LeNet with emnist
-    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(EMNIST, EMNIST_TRAIN_PATH, EMNIST_TEST_PATH, "balanced")
+    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(EMNIST, EMNIST_TRAIN_PATH, EMNIST_TEST_PATH, False, "balanced")
     run_trad_lenet(dl_train,
                     dl_valid,
                     dl_test,
                     TRAD_LENET_EMNIST_PATH,
                     "Trad_LeNet_emnist.png",
                     ds_name, 
-                    47)
+                    47)'''
 
     # For Modern LeNet with regular mnist
-    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(MNIST, MNIST_TRAIN_PATH, MNIST_TEST_PATH)
+    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(MNIST, MNIST_TRAIN_PATH, MNIST_TEST_PATH, False)
     run_modern_lenet(dl_train,
                     dl_valid, dl_test,
                     MOD_LENET_MNIST_PATH,
@@ -189,7 +189,7 @@ if __name__ == "__main__":
                     10)
 
     # For Modern LeNet with fashion mnist
-    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(FashionMNIST, FASH_MNIST_TRAIN_PATH, FASH_MNIST_TEST_PATH)
+    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(FashionMNIST, FASH_MNIST_TRAIN_PATH, FASH_MNIST_TEST_PATH, False)
     run_modern_lenet(dl_train,
                     dl_valid,
                     dl_test,
@@ -199,7 +199,7 @@ if __name__ == "__main__":
                     10)
 
     # For Modern LeNet with emnist
-    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(EMNIST, EMNIST_TRAIN_PATH, EMNIST_TEST_PATH, "balanced")
+    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(EMNIST, EMNIST_TRAIN_PATH, EMNIST_TEST_PATH, False, "balanced")
     run_modern_lenet(dl_train,
                     dl_valid,
                     dl_test, 

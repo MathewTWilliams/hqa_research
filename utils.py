@@ -54,7 +54,7 @@ MOD_LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_fash_mnist.pt")
 MOD_LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_emnist.pt")
 
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
-ACCURACY_FILE_COLS = ["Model", "Dataset", "Attack", "Average"] + [str(i) for i in range(10)]
+ACCURACY_FILE_COLS = ["Model", "Dataset", "Attack", "Average"]
 VISUAL_DIR = os.path.join(CWD, "Visuals")
 
 MNIST_TRANSFORM = transforms.Compose([
@@ -84,9 +84,6 @@ def add_accuracy_results(model_name, dataset_name, attack_name, accuracies):
                 "Attack" : [attack_name],
                 "Average" : [np.sum(accuracies) / len(accuracies)]}
 
-    for i, acc in enumerate(accuracies): 
-        row_dict[str(i)] = [acc]
-    
     row_df = pd.DataFrame(row_dict, columns=ACCURACY_FILE_COLS)
     combine_save_df(accuracy_df, row_df, ACCURACY_OUTPUT_FILE)
 

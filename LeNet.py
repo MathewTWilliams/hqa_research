@@ -29,16 +29,16 @@ class LeNet_5(Module):
         - early_stopping: should the model stop training early if validation loss increases.
         ''' 
         super(LeNet_5, self).__init__()
-        self.__train_loader = train_loader
-        self.__valid_loader = valid_loader
-        self.__num_classes = num_classes
-        self.__early_stopping = early_stopping
-        self.__loss_function = loss_function.to(device)
-        self.__save_path = save_path
+        self._train_loader = train_loader
+        self._valid_loader = valid_loader
+        self._num_classes = num_classes
+        self._early_stopping = early_stopping
+        self._loss_function = loss_function.to(device)
+        self._save_path = save_path
 
         if early_stopping: 
             new_file_name = "early_" + save_path.split("\\")[-1]
-            self.__save_path = os.path.join(MODELS_DIR, new_file_name)
+            self._save_path = os.path.join(MODELS_DIR, new_file_name)
 
         self.__init_model(Pooling_Type, Activ_Func_Type, pad_first_conv)
 
@@ -58,7 +58,7 @@ class LeNet_5(Module):
         torch.nn.init.xavier_uniform_(conv_3.weight)
         torch.nn.init.zeros_(conv_3.bias)
 
-        self.__cnn_layers = Sequential(
+        self._cnn_layers = Sequential(
             conv_1,
             Activ_Fun(),
             Pooling_Type(kernel_size=2, stride = 2),
@@ -70,17 +70,17 @@ class LeNet_5(Module):
         )
 
         if pad_first_conv:
-            self.__cnn_layers.append(Pooling_Type(kernel_size = 2, stride = 1))
+            self._cnn_layers.append(Pooling_Type(kernel_size = 2, stride = 1))
 
         linear_1 = Linear(120, out_features=84)
         torch.nn.init.xavier_uniform_(linear_1.weight)
         torch.nn.init.zeros_(linear_1.bias)
 
-        linear_2 = Linear(84, out_features=self.__num_classes)
+        linear_2 = Linear(84, out_features=self._num_classes)
         torch.nn.init.xavier_uniform_(linear_2.weight)
         torch.nn.init.zeros_(linear_2.bias)
 
-        self.__linear_layers = Sequential(
+        self._linear_layers = Sequential(
             Flatten(),
             linear_1,
             Dropout(),
@@ -88,16 +88,16 @@ class LeNet_5(Module):
             linear_2, 
         )
 
-        if not isinstance(self.__loss_function, CrossEntropyLoss):
-            self.__linear_layers.append(Softmax(dim = -1))
+        if not isinstance(self._loss_function, CrossEntropyLoss):
+            self._linear_layers.append(Softmax(dim = -1))
 
 
     def set_optimizer(self, optimizer): 
-        self.__optimizer = optimizer
+        self._optimizer = optimizer
 
     def forward(self, x):
-        x = self.__cnn_layers(x)
-        x = self.__linear_layers(x)
+        x = self._cnn_layers(x)
+        x = self._linear_layers(x)
         return x
 
     def run_epochs(self, n_epochs, validate = True):
@@ -113,47 +113,47 @@ class LeNet_5(Module):
                 valid_loss = self.__validate()
                 valid_losses.append(valid_loss)
 
-                if self.__early_stopping and valid_loss > min_valid_loss: 
+                if self._early_stopping and valid_loss > min_valid_loss: 
                     break
                 
                 min_valid_loss = valid_loss
 
-            torch.save(self, self.__save_path)
+            torch.save(self, self._save_path)
 
         return train_losses, valid_losses
 
     def __train(self):
         training_loss = 0
         self.train(True)
-        for data, labels in self.__train_loader:
+        for data, labels in self._train_loader:
             self.train()
             data = data.to(device)
-            if not isinstance(self.__loss_function, CrossEntropyLoss):
-                labels = F.one_hot(labels).float()
+            if not isinstance(self._loss_function, CrossEntropyLoss):
+                labels = F.one_hot(labels, num_classes = self._num_classes).float()
             labels = labels.to(device)
 
-            self.__optimizer.zero_grad()
+            self._optimizer.zero_grad()
             output = self(data)
-            loss = self.__loss_function(output, labels)
+            loss = self._loss_function(output, labels)
 
             loss.backward()
-            self.__optimizer.step()
+            self._optimizer.step()
             training_loss += loss.item()
         
-        return training_loss / len(self.__train_loader)
+        return training_loss / len(self._train_loader)
 
     def __validate(self):
         valid_loss = 0
         self.eval()
 
-        for data, labels in self.__valid_loader:
+        for data, labels in self._valid_loader:
             data = data.to(device)
             labels = labels.to(device)
 
             with torch.no_grad():
                 output = self(data)
-                loss = self.__loss_function(output, labels)
+                loss = self._loss_function(output, labels)
                 valid_loss += loss.item()
 
-        return valid_loss / len(self.__valid_loader)
+        return valid_loss / len(self._valid_loader)
 
