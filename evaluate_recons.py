@@ -11,6 +11,7 @@ import os
 import torch
 from sklearn.metrics import confusion_matrix
 import torchattacks
+from tqdm import tqdm
 
 transform = transforms.Compose(
         [
@@ -20,7 +21,8 @@ transform = transforms.Compose(
     )
 
 #ignore original cause accuracies are already calculatd for that dataset
-img_root_names = [ "data_jpg",
+recon_root_names = ["data_original", 
+                "data_jpg",
                 "data_recon_0", 
                 "data_recon_1", 
                 "data_recon_2", 
@@ -43,9 +45,8 @@ def evaluate_dataset(model, model_name, dl_test, ds_name, recon_name, attack = N
 
     diag_accuracies = confusion_matrix(test_labels, predictions, normalize="true").diagonal().tolist()
     avg_accuracy = np.sum(diag_accuracies) / len(diag_accuracies)
-
     attack_name = attack.attack if attack != None else "None"
-    add_accuracy_results(model_name, ds_name, attack_name, recon_name, avg_accuracy)
+    add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
 
 
 # Not currently in use
@@ -65,22 +66,25 @@ def evaluate_dataset(model, model_name, dl_test, ds_name, recon_name, attack = N
     evaluate_dataset(model, model_name, dl_test, column_name, attack)'''
 
 def eval_model(model_save_path, model_name, dataset):
-    global img_root_names
+    global recon_root_names
     global transform
 
     lenet_model = torch.load(model_save_path)
     lenet_model.eval()
 
-    ds_test = ImageFolder(os.path.join(dataset, root), transform=transform)
-    dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = 4)
+    ds_name = dataset.split("\\")[-1]
 
-    for root in img_root_names:
-        evaluate_dataset(lenet_model, model_name, dl_test, dataset, root)
+    for root in tqdm(recon_root_names):
+        ds_test = ImageFolder(os.path.join(dataset, root), transform=transform)
+        dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = 4)
+        evaluate_dataset(lenet_model, model_name, dl_test, ds_name, root)
 
     fgsm_attack = torchattacks.FGSM(lenet_model)
 
-    for root in img_root_names: 
-        evaluate_dataset(lenet_model, model_name, dataset, root, fgsm_attack)
+    for root in tqdm(recon_root_names):
+        ds_test = ImageFolder(os.path.join(dataset, root), transform=transform)
+        dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = 4)
+        evaluate_dataset(lenet_model, model_name, dl_test, ds_name, root, fgsm_attack)
     
 def main():
 

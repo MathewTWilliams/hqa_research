@@ -34,23 +34,6 @@ def save_training_metrics(model, dl_test, train_losses, valid_losses, save_visua
     plt.savefig(os.path.join(VISUAL_DIR, save_visual_name))
     plt.clf()
 
-    all_outputs = torch.Tensor().to(device)
-    test_labels = []
-
-    model.eval()
-    with torch.no_grad(): 
-        for data, labels in dl_test:
-            cur_output = model(data.to(device))
-            all_outputs = torch.cat((all_outputs, cur_output), 0)
-            test_labels.extend(labels.tolist())
-
-    softmax_probs = torch.exp(all_outputs).cpu()
-    predictions = np.argmax(softmax_probs, axis = -1)
-
-    conf_mat = confusion_matrix(test_labels, predictions, normalize="true")
-    add_accuracy_results(model_name, ds_name, "None", conf_mat.diagonal().tolist())
-
-
 def get_dataloaders(Data_Set_Type, train_download_path, test_download_path, validate, split = None): 
     '''
     Args:
@@ -149,7 +132,7 @@ def run_modern_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, d
 if __name__ == "__main__":
 
     # For traditional LeNet with regular mnist
-    '''dl_train, dl_valid, dl_test, ds_name = get_dataloaders(MNIST, MNIST_TRAIN_PATH, MNIST_TEST_PATH, False)
+    dl_train, dl_valid, dl_test, ds_name = get_dataloaders(MNIST, MNIST_TRAIN_PATH, MNIST_TEST_PATH, False)
     run_trad_lenet(dl_train, 
                     dl_valid, 
                     dl_test,
@@ -177,7 +160,7 @@ if __name__ == "__main__":
                     TRAD_LENET_EMNIST_PATH,
                     "Trad_LeNet_emnist.png",
                     ds_name, 
-                    47)'''
+                    47)
 
     # For Modern LeNet with regular mnist
     dl_train, dl_valid, dl_test, ds_name = get_dataloaders(MNIST, MNIST_TRAIN_PATH, MNIST_TEST_PATH, False)

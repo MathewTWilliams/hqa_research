@@ -76,10 +76,9 @@ def add_accuracy_results(model_name, dataset_name, reconstruction, attack_name, 
                 "Dataset" : [dataset_name], 
                 "Reconstruction" : [reconstruction],
                 "Attack" : [attack_name],
-                "Average" : [avg_accuracy]}
-    
+                "Average Accuracy" : [avg_accuracy]}
     row_df = pd.DataFrame(row_dict, columns=ACCURACY_FILE_COLS)
-    results_df.loc[len(results_df.values)] = row_df
+    results_df = pd.concat([results_df, row_df], ignore_index=True)
 
     results_df.to_csv(ACCURACY_OUTPUT_FILE, index = False)
 
