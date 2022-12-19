@@ -21,13 +21,13 @@ def main(download_train_path, download_test_path, model_name, model_save_path, i
     
     ds_train = Dataset_Type(download_train_path, download=True, transform=MNIST_TRANSFORM) \
                 if split == None else \
-                Dataset_Type(download_train_path, download=True, transform=MNIST_TRANSFORM, split = split)
+                Dataset_Type(download_train_path, download=True, transform=EMNIST_TRANSFORM, split = split)
     dl_train = DataLoader(ds_train, batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=4)
     
     
     ds_test = Dataset_Type(download_test_path, download=True, train=False, transform=MNIST_TRANSFORM) \
                 if split == None else \
-                Dataset_Type(download_test_path, download=True, train=False, transform=MNIST_TRANSFORM, split = split)
+                Dataset_Type(download_test_path, download=True, train=False, transform=EMNIST_TRANSFORM, split = split)
 
     dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, num_workers=4)
     test_x, _ = next(iter(dl_test))

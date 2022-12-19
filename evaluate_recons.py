@@ -6,12 +6,12 @@ import numpy as np
 from utils import *
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.datasets import ImageFolder
 import os
 import torch
 from sklearn.metrics import confusion_matrix
 import torchattacks
 from tqdm import tqdm
+from numeric_image_folder import NumericImageFolder
 
 transform = transforms.Compose(
         [
@@ -75,14 +75,14 @@ def eval_model(model_save_path, model_name, dataset):
     ds_name = dataset.split("\\")[-1]
 
     for root in tqdm(recon_root_names):
-        ds_test = ImageFolder(os.path.join(dataset, root), transform=transform)
+        ds_test = NumericImageFolder(os.path.join(dataset, root), transform=transform)
         dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = 4)
         evaluate_dataset(lenet_model, model_name, dl_test, ds_name, root)
 
     fgsm_attack = torchattacks.FGSM(lenet_model)
 
     for root in tqdm(recon_root_names):
-        ds_test = ImageFolder(os.path.join(dataset, root), transform=transform)
+        ds_test = NumericImageFolder(os.path.join(dataset, root), transform=transform)
         dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = 4)
         evaluate_dataset(lenet_model, model_name, dl_test, ds_name, root, fgsm_attack)
     

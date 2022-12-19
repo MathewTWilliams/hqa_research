@@ -6,7 +6,7 @@ from utils import get_bit_usage, device, LAYER_NAMES
 from r_adam import RAdam
 from scheduler import FlatCA
 import os
-from hqa import HQA
+from hqa import HQA, VQCodebook
 from torch.nn.utils import clip_grad_norm_
 
 

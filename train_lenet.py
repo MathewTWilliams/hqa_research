@@ -44,13 +44,13 @@ def get_dataloaders(Data_Set_Type, train_download_path, test_download_path, vali
     '''
     ds_test = Data_Set_Type(test_download_path, download=True, train = False, transform=MNIST_TRANSFORM) \
                 if split == None else \
-                Data_Set_Type(test_download_path, download=True, train = False, split = split, transform=MNIST_TRANSFORM)
+                Data_Set_Type(test_download_path, download=True, train = False, split = split, transform=EMNIST_TRANSFORM)
 
     dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = 4)
 
-    ds_train = Data_Set_Type(train_download_path, download=True, transform=MNIST_TRANSFORM) \
+    ds_train = Data_Set_Type(train_download_path, download=True, train = True, transform=MNIST_TRANSFORM) \
                 if split == None else \
-                Data_Set_Type(train_download_path, download=True, split = split, transform=MNIST_TRANSFORM)    
+                Data_Set_Type(train_download_path, download=True, train = True, split = split, transform=EMNIST_TRANSFORM)    
 
     ds_valid = None
     if validate:
@@ -67,7 +67,7 @@ def get_dataloaders(Data_Set_Type, train_download_path, test_download_path, vali
     return dl_train, dl_valid, dl_test, ds_name
 
 def run_trad_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, ds_name, num_classes,
-                 early_stopping = False, validate = False, pad_first_conv = True):
+                 early_stopping = False, validate = False, pad_first_conv = True, add_normalization = False):
     """
     Args: 
     - dl_train: data loader instance with our training information.
@@ -80,6 +80,7 @@ def run_trad_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, ds_
     - validate: should the model perform validation after each epoch
     - pad_first_conv: boolean to determine if the first convolution layer should be padded or not. If
             the first convolution layer is padded, then an additional pooling layer is added.
+    - add_normalization: boolean to determine if dropout should be used in the linear layers
     """
     model = LeNet_5(dl_train, 
                     dl_valid,
@@ -89,7 +90,8 @@ def run_trad_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, ds_
                     Tanh,
                     save_path,
                     pad_first_conv=pad_first_conv,
-                    early_stopping=early_stopping
+                    early_stopping=early_stopping,
+                    add_normalization=add_normalization
      )
 
     model.to(device)
@@ -99,7 +101,7 @@ def run_trad_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, ds_
 
 
 def run_modern_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, ds_name, num_classes,
-                     early_stopping = False, validate = False, pad_first_conv = False):
+                     early_stopping = False, validate = False, pad_first_conv = False, add_normalization = True):
     """
     Args: 
     - dl_train: data loader instance with our training information.
@@ -111,6 +113,8 @@ def run_modern_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, d
     - early_stopping: should the model stop training early if validation loss increases.
     - validate: should the model perform validation after each epoch
     - pad_first_conv: boolean to determine if the first convolution layer should be padded or not. If
+            the first convolution layer is padded, then an additional pooling layer is added.
+    - add_normalization: boolean to determine if dropout should be used in the linear layers
     """ 
      
     model = LeNet_5(dl_train,
@@ -121,7 +125,8 @@ def run_modern_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, d
                     ReLU,
                     save_path,
                     pad_first_conv=pad_first_conv,
-                    early_stopping=early_stopping
+                    early_stopping=early_stopping,
+                    add_normalization=add_normalization
     )
 
     model = model.to(device)
@@ -131,7 +136,7 @@ def run_modern_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, d
 
 if __name__ == "__main__":
 
-    # For traditional LeNet with regular mnist
+    '''# For traditional LeNet with regular mnist
     dl_train, dl_valid, dl_test, ds_name = get_dataloaders(MNIST, MNIST_TRAIN_PATH, MNIST_TEST_PATH, False)
     run_trad_lenet(dl_train, 
                     dl_valid, 
@@ -150,7 +155,7 @@ if __name__ == "__main__":
                     TRAD_LENET_FASH_MNIST_PATH,
                     "Trad_LeNet_fash_mnist.png", 
                     ds_name,
-                     10)
+                     10)'''
 
     # For traditional LeNet with emnist
     dl_train, dl_valid, dl_test, ds_name = get_dataloaders(EMNIST, EMNIST_TRAIN_PATH, EMNIST_TEST_PATH, False, "balanced")
@@ -162,7 +167,7 @@ if __name__ == "__main__":
                     ds_name, 
                     47)
 
-    # For Modern LeNet with regular mnist
+    '''# For Modern LeNet with regular mnist
     dl_train, dl_valid, dl_test, ds_name = get_dataloaders(MNIST, MNIST_TRAIN_PATH, MNIST_TEST_PATH, False)
     run_modern_lenet(dl_train,
                     dl_valid, dl_test,
@@ -189,5 +194,5 @@ if __name__ == "__main__":
                     MOD_LENET_EMNIST_PATH,
                     "Modern_LeNet_emnist.png",
                     ds_name,
-                    47)
+                    47)'''
 

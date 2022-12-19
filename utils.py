@@ -12,6 +12,7 @@ from torchvision.utils import make_grid
 from torch.utils.data import Dataset
 import pandas as pd
 from torchvision import transforms
+import torchvision.transforms.functional as TF
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LAYER_NAMES = ["Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4 Final"]
@@ -56,6 +57,7 @@ MOD_LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_emnist.pt")
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
 ACCURACY_FILE_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Average Accuracy"] 
 VISUAL_DIR = os.path.join(CWD, "Visuals")
+MNIST_BATCH_SIZE = 512
 
 MNIST_TRANSFORM = transforms.Compose([
     transforms.Resize(32),
@@ -63,7 +65,20 @@ MNIST_TRANSFORM = transforms.Compose([
     transforms.ToTensor()
 ])
 
-MNIST_BATCH_SIZE = 512
+def hflip_image(img): 
+    return TF.hflip(img)
+
+def rotate_image(img):
+    return TF.rotate(img, -90)
+
+
+EMNIST_TRANSFORM = transforms.Compose([
+    transforms.Lambda(rotate_image),
+    transforms.Lambda(hflip_image),
+    transforms.Resize(32),
+    transforms.CenterCrop(32),
+    transforms.ToTensor()
+])
 
 
 def add_accuracy_results(model_name, dataset_name, reconstruction, attack_name, avg_accuracy):
