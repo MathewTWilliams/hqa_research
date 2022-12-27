@@ -32,6 +32,7 @@ IMG_EMNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "EMNIST")
 
 #Model relatd file paths
 MODELS_DIR = os.path.join(CWD, "models")
+LOG_DIR = os.path.join(MODELS_DIR, "log")
 HQA_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model.pt")
 HQA_FASH_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_fash_mnist_model.pt")
 HQA_EMNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_emnist_model.pt")

@@ -2,7 +2,7 @@ import numpy as np
 import datetime
 import torch
 import torch.nn.functional as F
-from utils import get_bit_usage, device, LAYER_NAMES
+from utils import get_bit_usage, device, LAYER_NAMES, LOG_DIR, MODELS_DIR
 from r_adam import RAdam
 from scheduler import FlatCA
 import os
@@ -90,12 +90,12 @@ def train(dl_train, test_x, model, optimizer, scheduler, epochs, decay=True, log
         #        show_recon(test_x[n, 0], model)
         #        plt.show();
 
-def train_full_stack(dl_train, test_x, root, exp_name, epochs=5, lr=4e-4):
+def train_full_stack(dl_train, test_x, exp_name, epochs=5, lr=4e-4):
     
     enc_hidden_sizes = [16, 16, 32, 64, 128]
     dec_hidden_sizes = [16, 64, 256, 512, 1024]
     
-    os.makedirs(root + "/log", exist_ok=True)
+    os.makedirs(LOG_DIR, exist_ok=True)
     
     for i,_ in enumerate(LAYER_NAMES):
         print(f"training layer{i}")
@@ -114,12 +114,12 @@ def train_full_stack(dl_train, test_x, root, exp_name, epochs=5, lr=4e-4):
         
         print(f"layer{i} param count {sum(x.numel() for x in hqa.parameters()):,}")
         
-        log_file = f"{root}/log/{exp_name}_l{i}.log"
+        log_file = os.path.join(LOG_DIR, f"{exp_name}_l{i}.log")
         opt = RAdam(hqa.parameters(), lr=lr)
         scheduler = FlatCA(opt, steps=epochs*len(dl_train), eta_min=lr/10)
         train(dl_train, test_x, hqa, opt, scheduler, epochs, log=log_file)
         hqa_prev = hqa
     
-    torch.save(hqa, f"{root}/{exp_name}.pt")
+    torch.save(hqa, os.path.join(MODELS_DIR, f"{exp_name}.pt"))
     
     return hqa

@@ -28,7 +28,7 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test, ds_test):
     
     
     if not os.path.isfile(model_save_path):
-        hqa_model = train_full_stack(dl_train, test_x, MODELS_DIR, model_name, epochs=5)
+        hqa_model = train_full_stack(dl_train, test_x, model_name, epochs=5)
     else:
         hqa_model = torch.load(model_save_path)
     
