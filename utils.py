@@ -13,33 +13,22 @@ from torch.utils.data import Dataset
 import pandas as pd
 from torchvision import transforms
 import torchvision.transforms.functional as TF
+import sklearn
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LAYER_NAMES = ["Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4 Final"]
-
-# File paths for downloading mnist related datasets
-MNIST_TRAIN_PATH = '/tmp/mnist'
-MNIST_TEST_PATH = '/tmp/mnist_test_'
-FASH_MNIST_TRAIN_PATH = '/temp/fasion_mnist'
-FASH_MNIST_TEST_PATH = '/temp/fasion_mnist_test_'
-EMNIST_TRAIN_PATH = '/tmp/emnist'
-EMNIST_TEST_PATH = '/tmp/emnist_test_'
 
 HQA_MNIST_MODEL_NAME = "hqa_mnist_model"
 HQA_FASH_MNIST_MODEL_NAME = "hqa_fash_mnist_model"
 HQA_EMNIST_MODEL_NAME = "hqa_emnist_model"
 
 CWD = os.path.abspath(os.getcwd())
-PICKLED_DIR = os.path.join(CWD, "Pickle Files")
 
 #Saved data file paths (original data and constructions)
 IMG_DIR_PATH = os.path.join(CWD, "data")
 IMG_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "MNIST")
 IMG_FASH_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Fashion_MNIST")
 IMG_EMNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "EMNIST")
-MNIST_PICKLED_RECON_PATH = os.path.join(PICKLED_DIR, "mnist_pickled_recons.pkl")
-FASH_MNIST_PICKLED_RECON_PATH = os.path.join(PICKLED_DIR, "fash_mnist_pickled_recons.pkl")
-EMNIST_PICKLED_RECON_PATH = os.path.join(PICKLED_DIR, "emnist_pickled_recons.pkl")
 
 #Model relatd file paths
 MODELS_DIR = os.path.join(CWD, "models")
@@ -47,12 +36,9 @@ HQA_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model.pt")
 HQA_FASH_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_fash_mnist_model.pt")
 HQA_EMNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_emnist_model.pt")
 
-TRAD_LENET_MNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_mnist.pt")
-TRAD_LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_fash_mnist.pt")
-TRAD_LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_emnist.pt")
-MOD_LENET_MNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_mnist.pt")
-MOD_LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_fash_mnist.pt")
-MOD_LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "mod_lenet_emnist.pt")
+LENET_MNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_mnist.pt")
+LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_fash_mnist.pt")
+LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_emnist.pt")
 
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
 ACCURACY_FILE_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Average Accuracy"] 
@@ -68,6 +54,7 @@ MNIST_TRANSFORM = transforms.Compose([
 def hflip_image(img): 
     return TF.hflip(img)
 
+
 def rotate_image(img):
     return TF.rotate(img, -90)
 
@@ -79,7 +66,6 @@ EMNIST_TRANSFORM = transforms.Compose([
     transforms.CenterCrop(32),
     transforms.ToTensor()
 ])
-
 
 def add_accuracy_results(model_name, dataset_name, reconstruction, attack_name, avg_accuracy):
 
@@ -96,6 +82,7 @@ def add_accuracy_results(model_name, dataset_name, reconstruction, attack_name, 
     results_df = pd.concat([results_df, row_df], ignore_index=True)
 
     results_df.to_csv(ACCURACY_OUTPUT_FILE, index = False)
+
 
 class MyDataset(Dataset):
     def __init__(self, data, targets, transform=None):
@@ -115,6 +102,7 @@ class MyDataset(Dataset):
     
     def __len__(self):
         return len(self.data)
+
 
 def set_seeds(seed=42, fully_deterministic=False):
     torch.manual_seed(seed)
@@ -159,6 +147,7 @@ def show_recon(img, *models):
         axes[i].imshow(output, vmin=0, vmax=1, cmap='gray')
         model.train()
 
+
 #TRAINING
 def get_bit_usage(indices):
     """ Calculate bits used by latent space vs max possible """
@@ -183,18 +172,14 @@ def save_img(recon, label, path, idx):
 # LAYERS RECONSTRUCTION
 def recon_comparison(model, ds_test, names, descriptions, img_save_dir):
     images = []
-    targets = []
     for idx in range(len(ds_test)):
         (image, label) = ds_test[idx]    
         img = image.to(device).squeeze()
         images.append(img.cpu().numpy())
-        targets.append(label)
     #import ipdb; ipdb.set_trace()
     print("Original images to be reconstructed")
     output = np.hstack(images)
     #show_image(output)
-    
-    output_dict = {name:[] for name in names}
 
     for layer, name, description in zip(model, names, descriptions):
         images = []
@@ -206,7 +191,6 @@ def recon_comparison(model, ds_test, names, descriptions, img_save_dir):
             for_recon = img.unsqueeze(0).unsqueeze(0)
             layer.eval()
             recon = layer.reconstruct(for_recon).squeeze()
-            output_dict[name].append(recon.cpu().numpy())
             images.append(recon.cpu().numpy()) 
 
             recon_path = os.path.join(img_save_dir, f"data_recon_{names.index(name)}", f'{label}')
@@ -234,10 +218,8 @@ def recon_comparison(model, ds_test, names, descriptions, img_save_dir):
         output = np.hstack(images)
         #show_image(output)
 
-    return output_dict, targets
 
 # HQA distortions in Fig 3
-
 def get_rate_upper_bound(model, example_input):
     assert len(example_input.shape) == 4, "Expected (1, num_channels, x_h, x_w)"
     assert example_input.shape[0] == 1, "Please provide example with batch_size=1"
@@ -249,6 +231,7 @@ def get_rate_upper_bound(model, example_input):
     rate_bound = top_indices[0].numel() * np.log2(model.codebook.codebook_slots)
 
     return rate_bound
+
 
 def test(model, dl_test):
     model.eval()
@@ -288,8 +271,8 @@ def get_rd_data(model, dl_test):
     
     return dist, rates
 
-# Layer-wise interpolations
 
+# Layer-wise interpolations
 def interpolate(a, b, ds_test, vqvae, grid_x=16):
     images = []
     
@@ -310,22 +293,8 @@ def interpolate(a, b, ds_test, vqvae, grid_x=16):
     grid_img = make_grid(results.cpu(), nrow=grid_x)
     show_image(grid_img[0,:,:])
 
+
 def show_original(idx, ds_test):
     x, _ = ds_test[idx]
     image = x.squeeze()
     show_image(image)
-    
-
-def crop(path, im, label, height, width):
-    imgwidth, imgheight = im.size 
-    path_t = os.path.join(path, 'tiles')
-    p = Path(path_t)
-    p.mkdir(parents=True,exist_ok=True)
-
-    k=0
-    for i in range(0,imgheight,height):
-        for j in range(0,imgwidth,width):
-            box = (j, i, j+width, i+height)
-            a = im.crop(box)
-            a.save(os.path.join(path,"tiles",f"{label}IMG-{k}.png"))
-            k +=1
