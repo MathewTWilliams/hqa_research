@@ -22,6 +22,9 @@ RECON_ROOT_NAMES = ["data_original", "data_jpg", "data_recon_0", "data_recon_1",
 HQA_MNIST_MODEL_NAME = "hqa_mnist_model"
 HQA_FASH_MNIST_MODEL_NAME = "hqa_fash_mnist_model"
 HQA_EMNIST_MODEL_NAME = "hqa_emnist_model"
+HQA_TILED_MNIST_MODEL_NAME = "hqa_tiled_mnist_model"
+HQA_TILED_FASH_MNIST_MODEL_NAME = "hqa_tiled_fash_mnist_model"
+HQA_TILED_EMNIST_MODEL_NAME = "hqa_tiled_emnist_model"
 
 CWD = os.path.abspath(os.getcwd())
 
@@ -30,6 +33,9 @@ IMG_DIR_PATH = os.path.join(CWD, "data")
 IMG_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "MNIST")
 IMG_FASH_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Fashion_MNIST")
 IMG_EMNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "EMNIST")
+IMG_TILED_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Tiled_MNIST")
+IMG_TILED_FASH_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Tiled_Fashion_MNIST")
+IMG_TILED_EMNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Tiled_EMNIST")
 
 #Model relatd file paths
 MODELS_DIR = os.path.join(CWD, "models")
@@ -37,6 +43,9 @@ LOG_DIR = os.path.join(MODELS_DIR, "log")
 HQA_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model.pt")
 HQA_FASH_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_fash_mnist_model.pt")
 HQA_EMNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_emnist_model.pt")
+HQA_TILED_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_tiled_mnist_model.pt")
+HQA_TILED_FASH_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_tiled_fash_mnist_model.pt")
+HQA_TILED_EMNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_tiled_emnist_model.pt")
 
 LENET_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_mnist.pt")
 LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_fash_mnist.pt")

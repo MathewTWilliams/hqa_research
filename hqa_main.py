@@ -135,20 +135,20 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test,
 
 def run_regular_datasets():
     # MNIST
-    '''dl_train, _, dl_test = load_mnist(validate=False)
+    dl_train, _, dl_test = load_mnist(validate=False)
     main(HQA_MNIST_MODEL_NAME,
         HQA_MNIST_SAVE_PATH,
         IMG_MNIST_DIR_PATH,
         dl_train,
-        dl_test)'''
+        dl_test)
 
     # FASHION MNIST
-    '''dl_train, _, dl_test = load_fashion_mnist(validate=False)
+    dl_train, _, dl_test = load_fashion_mnist(validate=False)
     main(HQA_FASH_MNIST_MODEL_NAME,
         HQA_FASH_MNIST_SAVE_PATH,
         IMG_FASH_MNIST_DIR_PATH,
         dl_train,
-        dl_test)'''
+        dl_test)
 
     # EMNIST
     dl_train, _, dl_test = load_emnist(validate=False)
@@ -160,10 +160,45 @@ def run_regular_datasets():
 
 
 def run_tiled_datasets(num_tiles, tile_split):
-    pass
+    dl_train, _, dl_test = load_mnist(return_tiled=True, num_tiles = 2, tile_split="v")
+    main(
+        HQA_TILED_MNIST_MODEL_NAME,
+        HQA_TILED_MNIST_SAVE_PATH,
+        IMG_TILED_MNIST_DIR_PATH, 
+        dl_train,
+        dl_test,
+        is_tiled=True,
+        num_tiles=2,
+        layers = 4
+    )
+
+    dl_train, _, dl_test = load_fashion_mnist(return_tiled=True, num_tiles=2, tile_split="v")
+    main(
+        HQA_TILED_FASH_MNIST_MODEL_NAME,
+        HQA_TILED_FASH_MNIST_SAVE_PATH,
+        IMG_TILED_FASH_MNIST_DIR_PATH,
+        dl_train,
+        dl_test,
+        is_tiled=True,
+        num_tiles=2,
+        layers = 4
+    )
+
+    dl_train, _, dl_test = load_emnist(return_tiled=True, num_tiles = 2, tile_split="v")
+    main(
+        HQA_TILED_EMNIST_MODEL_NAME,
+        HQA_TILED_EMNIST_SAVE_PATH,
+        IMG_TILED_EMNIST_DIR_PATH, 
+        dl_train,
+        dl_test,
+        is_tiled=True,
+        num_tiles=2,
+        layers = 4
+    )
 
 
 
 if __name__ == "__main__":
     set_seeds()
     run_regular_datasets()
+    #run_tiled_datasets()
