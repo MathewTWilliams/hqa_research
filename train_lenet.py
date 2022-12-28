@@ -4,7 +4,7 @@
 from lenet import Lenet_5
 from utils import *
 import matplotlib.pyplot as plt
-from load_dataset import load_mnist, load_fashion_mnist, load_emnist
+from load_datasets import load_mnist, load_fashion_mnist, load_emnist
 
 def save_training_metrics(model, dl_test, train_losses, valid_losses, save_visual_name, model_name, ds_name): 
     '''
@@ -42,7 +42,7 @@ def run_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, ds_name,
     - validate: should the model perform validation after each epoch
     """
     model = Lenet_5(dl_train, dl_valid, num_classes, save_path, stop_early)
-    train_losses, valid_losses = model.run_epochs(n_epochs=100, validate=validate)
+    train_losses, valid_losses = model.run_epochs(n_epochs= 50, validate=validate)
     save_training_metrics(model, dl_test, train_losses, valid_losses, save_visual_name, "Lenet", ds_name)
 
 if __name__ == "__main__":

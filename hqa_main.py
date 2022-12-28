@@ -8,10 +8,9 @@ from torchvision.utils import make_grid
 import numpy as np
 from hqa import *
 import pandas as pd
-from load_dataset import load_mnist, load_emnist, load_fashion_mnist
+from load_datasets import load_mnist, load_emnist, load_fashion_mnist
 
-
-def main(model_name, model_save_path, img_save_dir, dl_train, dl_test, ds_test):
+def main(model_name, model_save_path, img_save_dir, dl_train, dl_test):
     
     print(f"CUDA={torch.cuda.is_available()}", os.environ.get("CUDA_VISIBLE_DEVICES"))
     #z = np.random.rand(5, 5)
@@ -20,7 +19,6 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test, ds_test):
     #MNIST DATASETS
     test_x, _ = next(iter(dl_test))
     test_x = test_x.to(device)
-    
     # TRAIN HQA STACK
     
     # Train a HQA stack
@@ -28,7 +26,7 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test, ds_test):
     
     
     if not os.path.isfile(model_save_path):
-        hqa_model = train_full_stack(dl_train, test_x, model_name, epochs=5)
+        hqa_model = train_full_stack(dl_train, test_x, model_name, epochs=50)
     else:
         hqa_model = torch.load(model_save_path)
     
@@ -43,7 +41,7 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test, ds_test):
     ]
 
     # Show reconstruction comparison over each layer in HQA
-    recon_comparison(hqa_model, ds_test, LAYER_NAMES, layer_descriptions, img_save_dir)
+    recon_comparison(hqa_model, dl_test.dataset, LAYER_NAMES, layer_descriptions, img_save_dir)
     
     
     # Layer distortions
@@ -138,28 +136,25 @@ if __name__ == "__main__":
     set_seeds()
 
     # MNIST
-    dl_train, _, dl_test, ds_test = load_mnist(validate=False, return_test_ds=True)
+    '''dl_train, _, dl_test = load_mnist(validate=False)
     main(HQA_MNIST_MODEL_NAME,
         HQA_MNIST_SAVE_PATH,
         IMG_MNIST_DIR_PATH,
         dl_train,
-        dl_test,
-        ds_test)
+        dl_test)'''
 
     # FASHION MNIST
-    dl_train, _, dl_test, ds_test = load_fashion_mnist(validate=False, return_test_ds=True)
+    '''dl_train, _, dl_test = load_fashion_mnist(validate=False)
     main(HQA_FASH_MNIST_MODEL_NAME,
         HQA_FASH_MNIST_SAVE_PATH,
         IMG_FASH_MNIST_DIR_PATH,
         dl_train,
-        dl_test,
-        ds_test)
+        dl_test)'''
 
     # EMNIST
-    dl_train, _, dl_test, ds_test = load_emnist(validate=False, return_test_ds=True)
+    dl_train, _, dl_test = load_emnist(validate=False)
     main(HQA_EMNIST_MODEL_NAME,
         HQA_EMNIST_SAVE_PATH,
         IMG_EMNIST_DIR_PATH,
         dl_train,
-        dl_test,
-        ds_test)
+        dl_test)

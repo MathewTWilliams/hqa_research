@@ -13,10 +13,11 @@ from torch.utils.data import Dataset
 import pandas as pd
 from torchvision import transforms
 import torchvision.transforms.functional as TF
-import sklearn
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LAYER_NAMES = ["Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4 Final"]
+RECON_ROOT_NAMES = ["data_original", "data_jpg", "data_recon_0", "data_recon_1",
+                    "data_recon_2", "data_recon_3", "data_recon_4"]
 
 HQA_MNIST_MODEL_NAME = "hqa_mnist_model"
 HQA_FASH_MNIST_MODEL_NAME = "hqa_fash_mnist_model"
@@ -37,9 +38,9 @@ HQA_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model.pt")
 HQA_FASH_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_fash_mnist_model.pt")
 HQA_EMNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_emnist_model.pt")
 
-LENET_MNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_mnist.pt")
-LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_fash_mnist.pt")
-LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "trad_lenet_emnist.pt")
+LENET_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_mnist.pt")
+LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_fash_mnist.pt")
+LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "lenet_emnist.pt")
 
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
 ACCURACY_FILE_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Average Accuracy"] 
@@ -171,12 +172,13 @@ def save_img(recon, label, path, idx):
 
 
 # LAYERS RECONSTRUCTION
-def recon_comparison(model, ds_test, names, descriptions, img_save_dir):
+def recon_comparison(model, ds_test, names, descriptions, img_save_dir, is_tiled = False, num_tiles = 0):
     images = []
     for idx in range(len(ds_test)):
         (image, label) = ds_test[idx]    
         img = image.to(device).squeeze()
         images.append(img.cpu().numpy())
+
     #import ipdb; ipdb.set_trace()
     print("Original images to be reconstructed")
     output = np.hstack(images)
@@ -184,7 +186,6 @@ def recon_comparison(model, ds_test, names, descriptions, img_save_dir):
 
     for layer, name, description in zip(model, names, descriptions):
         images = []
-        
         for idx in range(len(ds_test)):
             (image, label) = ds_test[idx]    
             img = image.to(device).squeeze()
@@ -192,7 +193,7 @@ def recon_comparison(model, ds_test, names, descriptions, img_save_dir):
             for_recon = img.unsqueeze(0).unsqueeze(0)
             layer.eval()
             recon = layer.reconstruct(for_recon).squeeze()
-            images.append(recon.cpu().numpy()) 
+            images.append(recon.cpu().numpy())
 
             recon_path = os.path.join(img_save_dir, f"data_recon_{names.index(name)}", f'{label}')
             orig_path = os.path.join(img_save_dir, 'data_original', f'{label}')

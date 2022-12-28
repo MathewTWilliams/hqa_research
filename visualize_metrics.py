@@ -6,16 +6,7 @@ import pandas as pd
 import numpy as np
 from utils import ACCURACY_OUTPUT_FILE, VISUAL_DIR
 import os
-from utils import IMG_MNIST_DIR_PATH, IMG_FASH_MNIST_DIR_PATH, IMG_EMNIST_DIR_PATH
-
-
-recon_root_names = ["data_original", 
-                "data_jpg",
-                "data_recon_0", 
-                "data_recon_1", 
-                "data_recon_2", 
-                "data_recon_3", 
-                "data_recon_4"]
+from utils import RECON_ROOT_NAMES
 
 def show_and_save_graph(recon): 
 
@@ -24,7 +15,7 @@ def show_and_save_graph(recon):
     if not os.path.exists(VISUAL_DIR): 
         os.mkdir(VISUAL_DIR)
 
-    title = f"{recon} LeNet Accuracy Comparison"
+    title = f"{recon} Lenet Accuracy Comparison"
 
     font_dict = {'family': 'Arial', 
                  'color' : 'darkblue', 
@@ -64,7 +55,7 @@ def show_and_save_graph(recon):
 
 def main():
         
-        for recon in recon_root_names:
+        for recon in RECON_ROOT_NAMES:
             show_and_save_graph(recon)
 
 if __name__ == "__main__": 

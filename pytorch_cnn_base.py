@@ -49,6 +49,11 @@ class PyTorch_CNN_Base(Module):
         '''Needs to be defned by the super class'''
         raise NotImplementedError()
 
+    def forward(self, x):
+        x = self._cnn_layers(x)
+        x = self._linear_layers(x)
+        return x
+
     def run_epochs(self, n_epochs , validate = True):
         train_losses = []
         valid_losses = []
@@ -66,7 +71,7 @@ class PyTorch_CNN_Base(Module):
                     break
 
                 min_valid_loss = valid_loss
-                torch.save(self, self._save_path)
+            torch.save(self, self._save_path)
         
         return train_losses, valid_losses
 

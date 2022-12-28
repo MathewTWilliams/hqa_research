@@ -3,10 +3,7 @@
 
 import torch
 from torch.utils.data import Dataset
-from numeric_image_folder import NumericImageFolder
-from utils import IMG_MNIST_DIR_PATH
-import os
-from PIL import Image
+from torchvision.transforms.functional import crop
 
 class TiledDataset(Dataset):
     '''
@@ -14,65 +11,56 @@ class TiledDataset(Dataset):
     - Use an ImageFolder class to load in data like we are training Lenet.
     - 
     '''
-    def __init__(self, images_targets, transform = None, target_transform = None,
-                 num_tiles = 2, tile_split = "v"):
+    def __init__(self, orig_dataset, num_tiles = 2, tile_split = "v"):
 
-        self._transform = transform
-        self._target_transform = target_transform
         self._num_tiles = num_tiles
         self._tile_split = tile_split
-        self.tile_dataset(images_targets)
+        self._tile_dataset(orig_dataset)
 
-    def tile_dataset(self, images_targets):
+    def _tile_dataset(self, orig_dataset):
+        self._data = []
+        self._targets = []
         if self._num_tiles not in [2,4]:
             return
         if self._tile_split.lower() not in ["v", "h"]:
             return
 
-        self._data = []
-        self._targets = []
-        for image_path, target in images_targets:
-            image = Image.open(image_path)
-            results = self.crop_image(image)
-            results[0].show()
-            results[1].show()
-            results[2].show()
-            results[3].show()
-            return
+        for image, target in orig_dataset:
+            crops = self._crop_image(image)
+            for crop in crops:
+                self._data.append(crop)
+                self._targets.append(target)
     
-    def crop_image(self, img):
+    def _crop_image(self, img):
         crops = []
-        half_width = img.width // 2
-        half_height = img.height // 2
+        img_width = img.shape[1]
+        img_height = img.shape[2]
+        half_width = img_width // 2
+        half_height = img_height // 2
 
         if self._num_tiles == 2 and self._tile_split == "v":
-            box_l= (0, 0, half_width, img.height)
-            box_r = (half_width+1, 0, img.width, img.height)
-            crops.append(img.crop(box_l))
-            crops.append(img.crop(box_r))
+            crops.append(crop(img, 0, 0, img_height, half_width))
+            crops.append(crop(img, 0, half_width+1, img_height, half_width))
 
         elif self._num_tiles == 2 and self._tile_split == "h":
-            box_t = (0, 0, img.width, half_height)
-            box_b = (0, half_height+1, img.width, img.height)
-            crops.append(img.crop(box_t))
-            crops.append(img.crop(box_b))
+            crops.append(crop(img, 0, 0, half_height, img_width))
+            crops.append(crop(img, half_height+1, 0, half_height, img_width))
 
         elif self._num_tiles == 4:
-            box_tl = (0, 0, half_width, half_height)
-            box_tr= (half_width + 1, 0, img.width, half_height)
-            box_bl = (0, half_height+ 1, half_width, img.height)
-            box_br = (half_width+1, half_height+1, img.width, img.height)
-            crops.append(img.crop(box_tl))
-            crops.append(img.crop(box_tr))
-            crops.append(img.crop(box_bl))
-            crops.append(img.crop(box_br))
+            crops.append(crop(img, 0, 0, half_width, half_height))
+            crops.append(crop(img, 0, half_width+1, half_height, half_width))
+            crops.append(crop(img, half_height+1, 0, half_height, half_width))
+            crops.append(crop(img, half_height+1, half_width+1, half_height, half_width))
 
         return crops
 
-if __name__ == "__main__":
-    root = "data_original"
-    image_ds = NumericImageFolder(os.path.join(IMG_MNIST_DIR_PATH, root))
-    tiled_ds = TiledDataset(images_targets = image_ds.imgs, 
-                            transform = image_ds.transform,
-                            target_transform=image_ds.target_transform,
-                            num_tiles=4)
+
+    def __getitem__(self, index):
+        return self._data[index], self._targets[index]
+    
+    def __len__(self):
+        return len(self._data)
+
+
+
+    

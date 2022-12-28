@@ -17,7 +17,7 @@ class Lenet_5(PyTorch_CNN_Base):
 
     
     def _define_cnn_layers(self):
-        conv_1 = Conv2d(in_channels=1, out_channels=6, kernel_size=5, padding = 1, stride=1)
+        conv_1 = Conv2d(in_channels=1, out_channels=6, kernel_size=5, padding = 2, stride=1)
         init.xavier_normal_(conv_1.weight)
         init.zeros_(conv_1.bias)
 
@@ -49,14 +49,14 @@ class Lenet_5(PyTorch_CNN_Base):
         init.zeros_(linear_1.bias)
 
         linear_2 = Linear(84, out_features= self._num_classes)
-        init.xavier_normal_(linear_2.weights)
+        init.xavier_normal_(linear_2.weight)
         init.zeros_(linear_2.bias)
 
         linear_layers = Sequential(
             Flatten(),
             linear_1, 
             ReLU(inplace=True), 
-            Dropout(inplace=True),
+            Dropout(),
             linear_2
             # not needed since Pytorch's implementation of CrossEntropyLoss
             # is LogSoftmax + Negative Log Likelihood loss which results 
@@ -68,7 +68,7 @@ class Lenet_5(PyTorch_CNN_Base):
 
     
     def _define_optimizer(self):
-        return SGD(self._parameters, lr = 0.01, momentum=0.9)
+        return SGD(self.parameters(), lr = 0.01, momentum=0.9)
 
     def _define_loss_function(self):
         return CrossEntropyLoss()

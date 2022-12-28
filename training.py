@@ -120,6 +120,5 @@ def train_full_stack(dl_train, test_x, exp_name, epochs=5, lr=4e-4):
         train(dl_train, test_x, hqa, opt, scheduler, epochs, log=log_file)
         hqa_prev = hqa
     
-    torch.save(hqa, os.path.join(MODELS_DIR, f"{exp_name}.pt"))
-    
+    torch.save(hqa, f"{MODELS_DIR}/{exp_name}.pt")
     return hqa

@@ -1,5 +1,5 @@
 # Author: Matt Williams
-# Version: 11/12/2022
+# Version: 12/26/2022
 
 import pandas as pd
 import numpy as np
@@ -13,21 +13,12 @@ import torchattacks
 from tqdm import tqdm
 from numeric_image_folder import NumericImageFolder
 
-transform = transforms.Compose(
+img_folder_transform = transforms.Compose(
         [
             transforms.Grayscale(num_output_channels=1),
             transforms.ToTensor()
         ]
     )
-
-#ignore original cause accuracies are already calculatd for that dataset
-recon_root_names = ["data_original", 
-                "data_jpg",
-                "data_recon_0", 
-                "data_recon_1", 
-                "data_recon_2", 
-                "data_recon_3", 
-                "data_recon_4"]
 
 def evaluate_dataset(model, model_name, dl_test, ds_name, recon_name, attack = None):
     all_outputs = torch.Tensor().to(device)
@@ -48,53 +39,31 @@ def evaluate_dataset(model, model_name, dl_test, ds_name, recon_name, attack = N
     attack_name = attack.attack if attack != None else "None"
     add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
 
-
-# Not currently in use
-'''def eval_pickled_recons(model, model_name, column_name, pickle_path, attack = None):
-    global transform
-
-    columns = [layer_name for layer_name in LAYER_NAMES]
-    columns.append("labels")
-    recon_df = pd.DataFrame(data = pd.read_pickle(pickle_path), columns=columns)
-
-    targets = recon_df["labels"].to_numpy()
-    recon_df = recon_df.drop(columns="labels")
-
-    ds_test = MyDataset(recon_df[column_name].to_numpy(), targets, transform)
-    dl_test = DataLoader(ds_test, MNIST_BATCH_SIZE, shuffle=False, num_workers=4)
-
-    evaluate_dataset(model, model_name, dl_test, column_name, attack)'''
-
 def eval_model(model_save_path, model_name, dataset):
-    global recon_root_names
-    global transform
+    global img_folder_transform
 
     lenet_model = torch.load(model_save_path)
     lenet_model.eval()
 
     ds_name = dataset.split("\\")[-1]
 
-    for root in tqdm(recon_root_names):
-        ds_test = NumericImageFolder(os.path.join(dataset, root), transform=transform)
+    for root in tqdm(RECON_ROOT_NAMES):
+        ds_test = NumericImageFolder(os.path.join(dataset, root), transform=img_folder_transform)
         dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = 4)
         evaluate_dataset(lenet_model, model_name, dl_test, ds_name, root)
 
     fgsm_attack = torchattacks.FGSM(lenet_model)
 
-    for root in tqdm(recon_root_names):
-        ds_test = NumericImageFolder(os.path.join(dataset, root), transform=transform)
+    for root in tqdm(RECON_ROOT_NAMES):
+        ds_test = NumericImageFolder(os.path.join(dataset, root), transform=img_folder_transform)
         dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = 4)
         evaluate_dataset(lenet_model, model_name, dl_test, ds_name, root, fgsm_attack)
     
 def main():
 
-    eval_model(TRAD_LENET_MNIST_PATH, "Trad. LeNet", IMG_MNIST_DIR_PATH)
-    eval_model(TRAD_LENET_FASH_MNIST_PATH, "Trad. LeNet", IMG_FASH_MNIST_DIR_PATH)
-    eval_model(TRAD_LENET_EMNIST_PATH, "Trad. LeNet", IMG_EMNIST_DIR_PATH)
-    eval_model(MOD_LENET_MNIST_PATH, "Mod. LeNet", IMG_MNIST_DIR_PATH)
-    eval_model(MOD_LENET_FASH_MNIST_PATH, "Mod. LeNet",  IMG_FASH_MNIST_DIR_PATH)
-    eval_model(MOD_LENET_EMNIST_PATH, "Mod. LeNet", IMG_EMNIST_DIR_PATH)
-
+    eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH)
+    eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH)
+    eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH)
 
 
 
