@@ -90,14 +90,16 @@ def train(dl_train, test_x, model, optimizer, scheduler, epochs, decay=True, log
         #        show_recon(test_x[n, 0], model)
         #        plt.show();
 
-def train_full_stack(dl_train, test_x, exp_name, epochs=5, lr=4e-4):
+def train_full_stack(dl_train, test_x, exp_name, epochs=5, lr=4e-4, layers = len(LAYER_NAMES)):
     
     enc_hidden_sizes = [16, 16, 32, 64, 128]
     dec_hidden_sizes = [16, 64, 256, 512, 1024]
     
     os.makedirs(LOG_DIR, exist_ok=True)
     
-    for i,_ in enumerate(LAYER_NAMES):
+    layers = LAYER_NAMES[:min(layers, len(LAYER_NAMES))]
+
+    for i,_ in enumerate(layers):
         print(f"training layer{i}")
         if i == 0:
             hqa = HQA.init_bottom(

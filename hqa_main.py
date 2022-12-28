@@ -10,7 +10,8 @@ from hqa import *
 import pandas as pd
 from load_datasets import load_mnist, load_emnist, load_fashion_mnist
 
-def main(model_name, model_save_path, img_save_dir, dl_train, dl_test):
+def main(model_name, model_save_path, img_save_dir, dl_train, dl_test, 
+        is_tiled = False, num_tiles = 0, layers = 5):
     
     print(f"CUDA={torch.cuda.is_available()}", os.environ.get("CUDA_VISIBLE_DEVICES"))
     #z = np.random.rand(5, 5)
@@ -26,7 +27,7 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test):
     
     
     if not os.path.isfile(model_save_path):
-        hqa_model = train_full_stack(dl_train, test_x, model_name, epochs=50)
+        hqa_model = train_full_stack(dl_train, test_x, model_name, epochs=50, layers = layers)
     else:
         hqa_model = torch.load(model_save_path)
     
@@ -41,7 +42,7 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test):
     ]
 
     # Show reconstruction comparison over each layer in HQA
-    recon_comparison(hqa_model, dl_test.dataset, LAYER_NAMES, layer_descriptions, img_save_dir)
+    recon_comparison(hqa_model, dl_test.dataset, LAYER_NAMES, layer_descriptions, img_save_dir, is_tiled, num_tiles)
     
     
     # Layer distortions
@@ -132,9 +133,7 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test):
     # dataloader = DataLoader(dataset, batch_size=5)'''
     
 
-if __name__ == "__main__":
-    set_seeds()
-
+def run_regular_datasets():
     # MNIST
     '''dl_train, _, dl_test = load_mnist(validate=False)
     main(HQA_MNIST_MODEL_NAME,
@@ -158,3 +157,13 @@ if __name__ == "__main__":
         IMG_EMNIST_DIR_PATH,
         dl_train,
         dl_test)
+
+
+def run_tiled_datasets(num_tiles, tile_split):
+    pass
+
+
+
+if __name__ == "__main__":
+    set_seeds()
+    run_regular_datasets()

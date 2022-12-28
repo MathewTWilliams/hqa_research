@@ -162,13 +162,18 @@ def get_bit_usage(indices):
 
 
 # TRAINING
-def save_img(recon, label, path, idx):
-	p = Path(path)
-	p.mkdir(parents=True,exist_ok=True)
-	print(f"recon image shape: {recon.shape}")
-	matplotlib.image.imsave(p / f"img{label}_{idx}.png", recon.cpu().numpy(), cmap = "gray")	
-	checkrecon = np.asarray(Image.open(p / f"img{label}_{idx}.png").convert("L"))
-	print(f"loaded image shape: {checkrecon.shape}")
+def save_img(recon, label, path, idx, is_tiled, num_tiles):
+    p = Path(path)
+    p.mkdir(parents=True,exist_ok=True)
+    print(f"recon image shape: {recon.shape}")
+    filename = f"img{label}_{idx}.png"
+    if is_tiled: 
+        real_idx = idx // num_tiles
+        split_num = idx % num_tiles
+        filename = f"img{label}_{real_idx}_{split_num}.png"
+    matplotlib.image.imsave(p / filename, recon.cpu().numpy(), cmap = "gray")	
+    checkrecon = np.asarray(Image.open(p / filename).convert("L"))
+    print(f"loaded image shape: {checkrecon.shape}")
 
 
 # LAYERS RECONSTRUCTION
@@ -198,8 +203,8 @@ def recon_comparison(model, ds_test, names, descriptions, img_save_dir, is_tiled
             recon_path = os.path.join(img_save_dir, f"data_recon_{names.index(name)}", f'{label}')
             orig_path = os.path.join(img_save_dir, 'data_original', f'{label}')
             jpg_path = os.path.join(img_save_dir, "data_jpg", f"{label}")
-            save_img(recon, label, recon_path, idx)
-            save_img(img, label, orig_path, idx)
+            save_img(recon, label, recon_path, idx, is_tiled, num_tiles)
+            save_img(img, label, orig_path, idx, is_tiled, num_tiles)
 
             im = Image.open(os.path.join(orig_path, f"img{label}_{idx}.png"))
             #print("The size of the image before conversion :", end = "")
@@ -212,7 +217,12 @@ def recon_comparison(model, ds_test, names, descriptions, img_save_dir, is_tiled
             p = Path(jpg_path)
             p.mkdir(parents = True, exist_ok=True)
 
-            gr_im.save(os.path.join(jpg_path, f"img{label}_{idx}.jpeg"))
+            jpg_filename = f"img{label}_{idx}.jpeg"
+            if is_tiled:
+                real_idx = idx // num_tiles
+                split_num = idx % num_tiles
+                jpg_filename = f"img{label}_{real_idx}_{split_num}.jpeg"
+            gr_im.save(os.path.join(jpg_path, jpg_filename))
             #print("The size of the image after conversion : ", end = "")
             #print(os.path.getsize(os.path.join(jpg_path, f"img{label}_{idx}.jpeg")))
     
