@@ -55,7 +55,8 @@ def show_and_save_graph(dataset):
 
 def main():
         
-    datasets = ["MNIST", "Fashion_MNIST", "EMNIST"]
+    #datasets = ["MNIST", "Fashion_MNIST", "EMNIST"]
+    datasets = ["Tiled_MNIST", "Tiled_Fashion_MNIST", "Tiled_EMNIST"]
     for dataset in datasets:
         show_and_save_graph(dataset)
 

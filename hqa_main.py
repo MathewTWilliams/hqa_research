@@ -160,7 +160,7 @@ def run_regular_datasets():
 
 
 def run_tiled_datasets(num_tiles, tile_split):
-    dl_train, _, dl_test = load_mnist(return_tiled=True, num_tiles = 2, tile_split="v")
+    """dl_train, _, dl_test = load_mnist(return_tiled=True, num_tiles = num_tiles, tile_split=tile_split)
     main(
         HQA_TILED_MNIST_MODEL_NAME,
         HQA_TILED_MNIST_SAVE_PATH,
@@ -170,9 +170,9 @@ def run_tiled_datasets(num_tiles, tile_split):
         is_tiled=True,
         num_tiles=2,
         layers = 4
-    )
+    )"""
 
-    dl_train, _, dl_test = load_fashion_mnist(return_tiled=True, num_tiles=2, tile_split="v")
+    dl_train, _, dl_test = load_fashion_mnist(return_tiled=True, num_tiles=num_tiles, tile_split=tile_split)
     main(
         HQA_TILED_FASH_MNIST_MODEL_NAME,
         HQA_TILED_FASH_MNIST_SAVE_PATH,
@@ -184,7 +184,7 @@ def run_tiled_datasets(num_tiles, tile_split):
         layers = 4
     )
 
-    dl_train, _, dl_test = load_emnist(return_tiled=True, num_tiles = 2, tile_split="v")
+    dl_train, _, dl_test = load_emnist(return_tiled=True, num_tiles = num_tiles, tile_split=tile_split)
     main(
         HQA_TILED_EMNIST_MODEL_NAME,
         HQA_TILED_EMNIST_SAVE_PATH,
@@ -200,5 +200,5 @@ def run_tiled_datasets(num_tiles, tile_split):
 
 if __name__ == "__main__":
     set_seeds()
-    run_regular_datasets()
-    #run_tiled_datasets()
+    #run_regular_datasets()
+    run_tiled_datasets(num_tiles=2, tile_split="v")

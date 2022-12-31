@@ -17,7 +17,7 @@ import torchvision.transforms.functional as TF
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LAYER_NAMES = ["Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4 Final"]
 RECON_ROOT_NAMES = ["data_original", "data_jpg", "data_recon_0", "data_recon_1",
-                    "data_recon_2", "data_recon_3", "data_recon_4"]
+                    "data_recon_2", "data_recon_3"] #"data_recon_4"]
 
 HQA_MNIST_MODEL_NAME = "hqa_mnist_model"
 HQA_FASH_MNIST_MODEL_NAME = "hqa_fash_mnist_model"
@@ -215,7 +215,13 @@ def recon_comparison(model, ds_test, names, descriptions, img_save_dir, is_tiled
             save_img(recon, label, recon_path, idx, is_tiled, num_tiles)
             save_img(img, label, orig_path, idx, is_tiled, num_tiles)
 
-            im = Image.open(os.path.join(orig_path, f"img{label}_{idx}.png"))
+
+            png_filename = f"img{label}_{idx}.png"
+            if is_tiled:
+                real_idx = idx // num_tiles
+                split_num = idx % num_tiles
+                png_filename = f"img{label}_{real_idx}_{split_num}.png"
+            im = Image.open(os.path.join(orig_path, png_filename))
             #print("The size of the image before conversion :", end = "")
             #print(os.path.getsize(os.path.join(orig_path, f"img{label}_{idx}.png")))
 
