@@ -5,9 +5,6 @@ from torchvision.datasets.folder import default_loader
 from torchvision.datasets import ImageFolder
 
 
-#TODO need to make changes or a new class to account for
-#split images
-
 class NumericImageFolder(ImageFolder):
     '''This Custom Image Folder gives each class an index
     depending on its numerical order instead of lexicographic order.
