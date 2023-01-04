@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from torch.distributions import RelaxedOneHotCategorical, Categorical
+from torch.nn import GELU
 from mish import *
 from utils import device
 
@@ -15,9 +16,11 @@ class Encoder(nn.Module):
         super().__init__()
         blocks = [
             nn.Conv2d(in_feat_dim, hidden_dim // 2, kernel_size=3, stride=2, padding=1),
-            Mish(),
+            #Mish(),
+            GELU(),
             nn.Conv2d(hidden_dim // 2, hidden_dim, kernel_size=3, padding=1),
-            Mish(),
+            #Mish(),
+            GELU(),
         ]
 
         for _ in range(num_res_blocks):
@@ -40,7 +43,7 @@ class Decoder(nn.Module):
         self.very_bottom = very_bottom
         self.out_feat_dim = out_feat_dim # num channels on bottom layer
 
-        blocks = [nn.Conv2d(in_feat_dim, hidden_dim, kernel_size=3, padding=1), Mish()]
+        blocks = [nn.Conv2d(in_feat_dim, hidden_dim, kernel_size=3, padding=1), GELU()]#Mish()]
 
         for _ in range(num_res_blocks):
             blocks.append(ResBlock(hidden_dim, hidden_dim // 2))
@@ -48,7 +51,8 @@ class Decoder(nn.Module):
         blocks.extend([
                 Upsample(),
                 nn.Conv2d(hidden_dim, hidden_dim // 2, kernel_size=3, padding=1),
-                Mish(),
+                #Mish(),
+                GELU(),
                 nn.Conv2d(hidden_dim // 2, out_feat_dim, kernel_size=3, padding=1),
         ])
 
