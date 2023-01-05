@@ -55,10 +55,10 @@ def show_and_save_graph(dataset):
 
 def main():
         
-    #datasets = ["MNIST", "Fashion_MNIST", "EMNIST"]
+    datasets = ["MNIST", "Fashion_MNIST", "EMNIST", "MNIST_GELU"]
     #datasets = ["Tiled_MNIST", "Tiled_Fashion_MNIST", "Tiled_EMNIST"]
-    #for dataset in datasets:
-    #    show_and_save_graph(dataset)
-    show_and_save_graph("MNIST_GELU")
+    for dataset in datasets:
+        show_and_save_graph(dataset)
+
 if __name__ == "__main__": 
     main()

@@ -109,3 +109,20 @@ class PyTorch_CNN_Base(Module):
                 valid_loss += loss.item()
 
         return valid_loss / len(self._valid_loader)
+
+
+def run_predictions(model, dl_test, attack = None):
+    all_outputs = torch.Tensor().to(device)
+    test_labels = []
+
+    for data, labels in dl_test:
+        if attack is not None: 
+            data = attack(data, labels)
+        cur_output = model(data.to(device))
+        all_outputs = torch.cat((all_outputs, cur_output), axis = 0)
+        test_labels.extend(labels.tolist())
+    
+    softmax_probs = torch.exp(all_outputs).detach().cpu().numpy()
+    predictions = np.argmax(softmax_probs, axis = -1)
+
+    return predictions

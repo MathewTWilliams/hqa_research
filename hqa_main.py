@@ -142,9 +142,9 @@ def run_regular_datasets():
         dl_train,
         dl_test)'''
 
-    main("hqa_mnist_model_GELU",
-        os.path.join(MODELS_DIR, "hqa_mnist_model_GELU.pt"),
-        os.path.join(IMG_DIR_PATH, "MNIST_GELU"),
+    main(HQA_MNIST_GELU_MODEL_NAME,
+        HQA_MNIST_GELU_SAVE_PATH,
+        IMG_MNIST_GELU_DIR_PATH,
         dl_train,
         dl_test)
 

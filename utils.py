@@ -51,10 +51,18 @@ LENET_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_mnist.pt")
 LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_fash_mnist.pt")
 LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "lenet_emnist.pt")
 
+#GELU Experiment
+HQA_MNIST_GELU_MODEL_NAME = "hqa_mnist_model_GELU"
+HQA_MNIST_GELU_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model_GELU.pt")
+IMG_MNIST_GELU_DIR_PATH = os.path.join(IMG_DIR_PATH, "MNIST_GELU")
+
+
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
 ACCURACY_FILE_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Average Accuracy"] 
 VISUAL_DIR = os.path.join(CWD, "Visuals")
 MNIST_BATCH_SIZE = 512
+NUM_DATA_LOADER_WORKERS = 4
+RANDOM_SEED = 42
 
 MNIST_TRANSFORM = transforms.Compose([
     transforms.Resize(32),

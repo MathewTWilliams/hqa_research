@@ -3,7 +3,8 @@
 
 from torchvision.datasets import MNIST, FashionMNIST, EMNIST
 from torch.utils.data import DataLoader, Subset
-from utils import MNIST_TRANSFORM, EMNIST_TRANSFORM, MNIST_BATCH_SIZE
+from utils import MNIST_TRANSFORM, EMNIST_TRANSFORM, MNIST_BATCH_SIZE, NUM_DATA_LOADER_WORKERS, \
+RANDOM_SEED
 from sklearn.model_selection import train_test_split
 from slice_torch_dataset import TiledDataset
 
@@ -14,10 +15,6 @@ FASH_MNIST_TRAIN_PATH = '/tmp/fasion_mnist'
 FASH_MNIST_TEST_PATH = '/tmp/fasion_mnist_test_'
 EMNIST_TRAIN_PATH = '/tmp/emnist'
 EMNIST_TEST_PATH = '/tmp/emnist_test_'
-
-RANDOM_SEED = 42
-NUM_WORKERS = 4
-
 
 def _make_train_valid_split(ds_train, len_ds_test):
     train_idxs, valid_idxs, _, _ = train_test_split(
@@ -43,11 +40,11 @@ def _make_data_loaders(ds_train, ds_test, validate, return_tiled, num_tiles, til
         if ds_valid:
             ds_valid = TiledDataset(ds_valid, num_tiles, tile_split)
 
-    dl_train = DataLoader(ds_train, batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
-    dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+    dl_train = DataLoader(ds_train, batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=NUM_DATA_LOADER_WORKERS)
+    dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle=False, num_workers=NUM_DATA_LOADER_WORKERS)
     dl_valid = None
     if ds_valid:
-        dl_valid = DataLoader(ds_valid, batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
+        dl_valid = DataLoader(ds_valid, batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=NUM_DATA_LOADER_WORKERS)
     
     return dl_train, dl_valid, dl_test
 
