@@ -13,20 +13,21 @@ import os
 import seaborn as sns
 from utils import *
 import matplotlib.pyplot as plt
-from pytorch_cnn_base import run_predictions
+from pytorch_cnn_base import query_model
 from sklearn.model_selection import train_test_split
 from slice_torch_dataset import CombinedDataSet
+import numpy as np
+def run_tsne(model_name, outputs_labels, predictions, ds_name, recon_name, num_classes, attack = None, show_incorrect = True):
 
-def run_tsne(model_name, ds_test, predictions, ds_name, recon_name, num_classes, attack = None, show_incorrect = True):
     tsne_components = 2
-    pca_components = 50
+    pca_components = 5
 
     points_to_show = []
-    for (img, target), pred in zip(ds_test, predictions):
+    for (output, target), pred in zip(outputs_labels, predictions):
         if show_incorrect and target != pred:
-            points_to_show.append((img.squeeze(0).numpy().flatten(), target))
+            points_to_show.append((output, target))
         elif not show_incorrect and target == pred:
-            points_to_show.append((img.squeeze(0).numpy().flatten(), target))
+            points_to_show.append((output, target))
 
     train = [data[0] for data in points_to_show]
     labels = [data[1] for data in points_to_show]
