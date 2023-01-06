@@ -100,12 +100,11 @@ class CombinedDataSet(Dataset):
 
             targets.append(target)
 
-        targets = torch.LongTensor(targets)
         return data, targets
 
 
     def __getitem__(self, index):
-        return self._data[index], int(self._targets[index])
+        return self._data[index], self._targets[index]
 
     def __len__(self):
         return len(self._data)

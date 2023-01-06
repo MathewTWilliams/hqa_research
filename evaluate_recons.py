@@ -11,8 +11,8 @@ import torchattacks
 from tqdm import tqdm
 from numeric_image_folder import NumericImageFolder
 from slice_torch_dataset import CombinedDataSet
-from pytorch_cnn_base import run_predictions
-from proposal_visuals import run_tsne
+from pytorch_cnn_base import query_model, outputs_to_predictions
+from tsne import run_tsne
 from sklearn.model_selection import train_test_split
 
 def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, attack = None):
@@ -35,16 +35,19 @@ def eval_model(model_save_path, model_name, dataset, num_classes):
         ds_test = NumericImageFolder(os.path.join(dataset, root), transform=IMG_FOLDER_TRANFORM)
         dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = NUM_DATA_LOADER_WORKERS)
         
-        org_predictions = run_predictions(lenet_model, dl_test)
+        model_output = query_model(lenet_model, dl_test, return_softmax = False)
+        org_predictions = outputs_to_predictions(torch.Tensor(model_output))
         _ = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root)
 
         fgsm_attack = torchattacks.FGSM(lenet_model)
-        atk_predictions = run_predictions(lenet_model, dl_test, fgsm_attack)
+        atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
+        atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
         num_incorrect = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, fgsm_attack.attack)
 
         if root in ["data_original", "data_recon_4"]:
-            run_tsne(model_name, ds_test, atk_predictions, ds_name, root, num_classes, fgsm_attack.attack)
-            
+            atk_output_labels = zip(atk_model_output, ds_test.targets)
+            run_tsne(model_name, atk_output_labels, atk_predictions, ds_name, root, num_classes, fgsm_attack.attack)
+    
             test_idxs, _ = train_test_split(
                 range(len(ds_test)),
                 stratify = ds_test.targets,
@@ -54,9 +57,11 @@ def eval_model(model_save_path, model_name, dataset, num_classes):
 
             ds_test = Subset(ds_test, test_idxs)
             dl_test = DataLoader(ds_test, batch_size = MNIST_BATCH_SIZE, shuffle = False, num_workers = NUM_DATA_LOADER_WORKERS)
-            new_predictions = run_predictions(lenet_model, dl_test)
-            run_tsne(model_name, ds_test, new_predictions, ds_name, root, num_classes, show_incorrect=False)
-
+            new_model_outputs = query_model(lenet_model, dl_test, return_softmax = False)
+            new_predictions = outputs_to_predictions(torch.Tensor(new_model_outputs))
+            targets = [ds_test.dataset.targets[i] for i in ds_test.indices]
+            new_outputs_labels = zip(new_model_outputs, targets)
+            run_tsne(model_name, new_outputs_labels, new_predictions, ds_name, root, num_classes, show_incorrect=False)
 
 
 def eval_tiled_model(model_save_path, model_name, dataset, num_classes):
@@ -71,15 +76,18 @@ def eval_tiled_model(model_save_path, model_name, dataset, num_classes):
         ds_test = CombinedDataSet(ds_test, num_tiles=2, tile_split="v")
         dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = NUM_DATA_LOADER_WORKERS)
         
-        org_predictions = run_predictions(lenet_model, dl_test)
+        model_output = query_model(lenet_model, dl_test, return_softmax = False)
+        org_predictions = outputs_to_predictions(torch.Tensor(model_output))
         _ = evaluate_dataset(model_name, ds_test._targets, org_predictions, ds_name, root)
 
         fgsm_attack = torchattacks.FGSM(lenet_model)
-        atk_predictions = run_predictions(lenet_model, dl_test, fgsm_attack)
+        atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
+        atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
         num_incorrect = evaluate_dataset(model_name, ds_test._targets, atk_predictions, ds_name, root, fgsm_attack.attack)
 
         if root in ["data_original", "data_recon_3"]:
-            run_tsne(model_name, ds_test, atk_predictions, ds_name, root, num_classes, fgsm_attack.attack)
+            atk_output_labels = zip(atk_model_output, ds_test._targets)
+            run_tsne(model_name, atk_output_labels, atk_predictions, ds_name, root, num_classes, fgsm_attack.attack)
 
             test_idxs, _ = train_test_split(
                 range(len(ds_test)),
@@ -90,9 +98,12 @@ def eval_tiled_model(model_save_path, model_name, dataset, num_classes):
 
             ds_test = Subset(ds_test, test_idxs)
             dl_test = DataLoader(ds_test, batch_size = MNIST_BATCH_SIZE, shuffle = False, num_workers=NUM_DATA_LOADER_WORKERS)
-            new_predictions = run_predictions(lenet_model, dl_test)
-            run_tsne(model_name, ds_test, new_predictions, ds_name, root, num_classes, show_incorrect = False)
-            
+            new_model_outputs = query_model(lenet_model, dl_test, return_softmax = False)
+            new_predictions = outputs_to_predictions(torch.Tensor(new_model_outputs))
+            targets = [ds_test.dataset._targets[i] for i in ds_test.indices]
+            new_outputs_labels = zip(new_model_outputs, targets)
+            run_tsne(model_name, new_outputs_labels, new_predictions, ds_name, root, num_classes, show_incorrect = False)
+
 
     
 def main():

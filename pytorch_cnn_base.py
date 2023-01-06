@@ -111,18 +111,25 @@ class PyTorch_CNN_Base(Module):
         return valid_loss / len(self._valid_loader)
 
 
-def run_predictions(model, dl_test, attack = None):
-    all_outputs = torch.Tensor().to(device)
-    test_labels = []
+def outputs_to_predictions(model_output):
+    softmax_probs = torch.exp(model_output).numpy()
+    return np.argmax(softmax_probs, axis = -1)
+
+
+def query_model(model, dl_test, attack = None, return_softmax = True):
+    outputs = torch.Tensor().to(device)
 
     for data, labels in dl_test:
         if attack is not None: 
             data = attack(data, labels)
         cur_output = model(data.to(device))
-        all_outputs = torch.cat((all_outputs, cur_output), axis = 0)
-        test_labels.extend(labels.tolist())
+        outputs = torch.cat((outputs, cur_output), axis = 0)
     
-    softmax_probs = torch.exp(all_outputs).detach().cpu().numpy()
-    predictions = np.argmax(softmax_probs, axis = -1)
+    outputs = outputs.detach().cpu()
+    if return_softmax:
+        outputs = outputs_to_predictions(outputs)
 
-    return predictions
+    else: 
+        outputs = outputs.numpy()
+
+    return outputs
