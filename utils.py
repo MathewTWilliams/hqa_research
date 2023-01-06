@@ -13,6 +13,7 @@ from torch.utils.data import Dataset
 import pandas as pd
 from torchvision import transforms
 import torchvision.transforms.functional as TF
+import scipy.fftpack as fp
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LAYER_NAMES = ["Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4 Final"]
@@ -69,6 +70,23 @@ MNIST_TRANSFORM = transforms.Compose([
     transforms.CenterCrop(32),
     transforms.ToTensor()
 ])
+
+def fft_image(img):
+    data = np.array(img)
+    fftdata = fp.rfft(fp.rfft(data, axis = 0), axis = 1)
+    remmax = lambda x : x / x.max()
+    remmin = lambda x : x - np.amin(x, axis = (0,1), keepdims=True)
+    toint8 = lambda x: (remmax(remmin(x)) * (256 - 1e-4)).astype(int)
+    img = Image.new('L', toint8(fftdata).shape[1::-1])
+    return img
+
+FFT_MNIST_TRANSFORM = transforms.Compose([
+    transforms.Lambda(fft_image),
+    transforms.Resize(32),
+    transforms.CenterCrop(32),
+    transforms.ToTensor()
+])
+    
 
 def hflip_image(img): 
     return TF.hflip(img)

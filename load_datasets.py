@@ -4,7 +4,7 @@
 from torchvision.datasets import MNIST, FashionMNIST, EMNIST
 from torch.utils.data import DataLoader, Subset
 from utils import MNIST_TRANSFORM, EMNIST_TRANSFORM, MNIST_BATCH_SIZE, NUM_DATA_LOADER_WORKERS, \
-RANDOM_SEED
+RANDOM_SEED, FFT_MNIST_TRANSFORM
 from sklearn.model_selection import train_test_split
 from slice_torch_dataset import TiledDataset
 
@@ -52,6 +52,12 @@ def _make_data_loaders(ds_train, ds_test, validate, return_tiled, num_tiles, til
 def load_mnist(validate = False, return_tiled = False, num_tiles = 2, tile_split = "v"):
     ds_train = MNIST(MNIST_TRAIN_PATH, download=True, train=True, transform=MNIST_TRANSFORM)
     ds_test = MNIST(MNIST_TEST_PATH, download=True, train=False, transform=MNIST_TRANSFORM)
+    return _make_data_loaders(ds_train, ds_test, validate, return_tiled, num_tiles, tile_split)
+
+
+def load_fft_mnist(validate = False, return_tiled = False, num_tiles = 2, tile_split = "v"):
+    ds_train = MNIST(MNIST_TRAIN_PATH, download=True, train = True, transform=FFT_MNIST_TRANSFORM)
+    ds_test = MNIST(MNIST_TEST_PATH, download=True, train=False, transform=FFT_MNIST_TRANSFORM)
     return _make_data_loaders(ds_train, ds_test, validate, return_tiled, num_tiles, tile_split)
 
 

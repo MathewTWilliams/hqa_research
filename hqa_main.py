@@ -8,7 +8,7 @@ from torchvision.utils import make_grid
 import numpy as np
 from hqa import *
 import pandas as pd
-from load_datasets import load_mnist, load_emnist, load_fashion_mnist
+from load_datasets import load_mnist, load_emnist, load_fashion_mnist, load_fft_mnist
 
 def main(model_name, model_save_path, img_save_dir, dl_train, dl_test, 
         is_tiled = False, num_tiles = 0, layers = 5):
@@ -135,18 +135,20 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test,
 
 def run_regular_datasets():
     # MNIST
-    dl_train, _, dl_test = load_mnist(validate=False)
-    '''main(HQA_MNIST_MODEL_NAME,
+    '''dl_train, _, dl_test = load_mnist(validate=False)
+    main(HQA_MNIST_MODEL_NAME,
         HQA_MNIST_SAVE_PATH,
         IMG_MNIST_DIR_PATH,
         dl_train,
         dl_test)'''
 
+    dl_train, _, dl_test = load_fft_mnist(validate=False)
     main(HQA_MNIST_GELU_MODEL_NAME,
         HQA_MNIST_GELU_SAVE_PATH,
         IMG_MNIST_GELU_DIR_PATH,
         dl_train,
-        dl_test)
+        dl_test, 
+        layers=4)
 
     # FASHION MNIST
     '''dl_train, _, dl_test = load_fashion_mnist(validate=False)
