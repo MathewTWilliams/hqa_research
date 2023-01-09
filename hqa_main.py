@@ -134,23 +134,31 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test,
     
 
 def run_regular_datasets():
-    # MNIST
+
     '''dl_train, _, dl_test = load_mnist(validate=False)
     main(HQA_MNIST_MODEL_NAME,
         HQA_MNIST_SAVE_PATH,
         IMG_MNIST_DIR_PATH,
         dl_train,
-        dl_test)'''
+        dl_test)
 
-    dl_train, _, dl_test = load_fft_mnist(validate=False)
+    dl_train, _, dl_test = load_mnist(validate=False)
     main(HQA_MNIST_GELU_MODEL_NAME,
         HQA_MNIST_GELU_SAVE_PATH,
         IMG_MNIST_GELU_DIR_PATH,
         dl_train,
-        dl_test, 
-        layers=4)
+        dl_test)'''
 
-    # FASHION MNIST
+
+    dl_train, _, dl_test = load_fft_mnist(validate=False)
+    main(
+        HQA_MNIST_FFT_MODEL_NAME,
+        HQA_MNIST_FFT_SAVE_PATH, 
+        IMG_MNIST_FFT_DIR_PATH,
+        dl_train, 
+        dl_test, 
+        layers = 4)
+
     '''dl_train, _, dl_test = load_fashion_mnist(validate=False)
     main(HQA_FASH_MNIST_MODEL_NAME,
         HQA_FASH_MNIST_SAVE_PATH,

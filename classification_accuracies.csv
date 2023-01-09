@@ -91,3 +91,5 @@ Lenet,MNIST_GELU,data_recon_3,None,0.9254
 Lenet,MNIST_GELU,data_recon_3,FGSM,0.8819
 Lenet,MNIST_GELU,data_recon_4,None,0.8119
 Lenet,MNIST_GELU,data_recon_4,FGSM,0.8002
+Lenet,Tiled_MNIST,data_recon_0&3,None,0.945
+Lenet,Tiled_MNIST,data_recon_0&3,FGSM,0.8772

@@ -57,6 +57,11 @@ HQA_MNIST_GELU_MODEL_NAME = "hqa_mnist_model_GELU"
 HQA_MNIST_GELU_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model_GELU.pt")
 IMG_MNIST_GELU_DIR_PATH = os.path.join(IMG_DIR_PATH, "MNIST_GELU")
 
+#FFT Experiment
+HQA_MNIST_FFT_MODEL_NAME = "hqa_mnist_model_FFT"
+HQA_MNIST_FFT_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model_FFT.pt")
+IMG_MNIST_FFT_DIR_PATH = os.path.join(IMG_DIR_PATH, "MNIST_FFT")
+
 
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
 ACCURACY_FILE_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Average Accuracy"] 

@@ -50,7 +50,7 @@ class TiledDataset(Dataset):
             crops.append(crop(img, half_height+1, 0, half_height, img_width))
 
         elif self._num_tiles == 4:
-            crops.append(crop(img, 0, 0, half_width, half_height))
+            crops.append(crop(img, 0, 0, half_height, half_width))
             crops.append(crop(img, 0, half_width+1, half_height, half_width))
             crops.append(crop(img, half_height+1, 0, half_height, half_width))
             crops.append(crop(img, half_height+1, half_width+1, half_height, half_width))
@@ -66,38 +66,45 @@ class TiledDataset(Dataset):
 
 
 class CombinedDataSet(Dataset):
-    def __init__(self, orig_dataset, num_tiles, tile_split= "v"):
+    def __init__(self, orig_dataset, additional_dataset = None, num_tiles = 2, tile_split= "v"):
         self._num_tiles = num_tiles
         self._tile_split = tile_split
-        self._data, self._targets = self._combine_dataset(orig_dataset)
+        self._data, self._targets = self._combine_dataset(orig_dataset, additional_dataset)
         
-    def _combine_dataset(self, orig_dataset):
+    def _combine_dataset(self, orig_dataset, additional_dataset):
         data = []
         targets = []
 
         if self._num_tiles not in [2,4]:
-            return
+            return None, None
         if self._tile_split.lower() not in ["v", "h"]:
-            return
+            return None, None
 
         for i in range(0, len(orig_dataset), self._num_tiles):
             target = orig_dataset[i][1]
             img_1 = orig_dataset[i][0].squeeze(0)
             img_2 = orig_dataset[i+1][0].squeeze(0)
+            if additional_dataset is not None: 
+                img_2 = additional_dataset[i+1][0].squeeze(0)
+
+            combined_img = None
             if self._num_tiles == 2 and self._tile_split == "v":
                 combined_img = torch.concat([img_1, img_2], dim = 1)
-                data.append(combined_img.unsqueeze(0))
+
             elif self._num_tiles == 2 and self._tile_split == "h":
                 combined_img = torch.concat([img_1, img_2], dim = 0)
-                data.append(combined_img.unsqueeze(0))
+
             elif self._num_tiles == 4:
                 img_3 = orig_dataset[i+2][0].squeeze(0)
                 img_4 = orig_dataset[i+3][0].squeeze(0)
+                if additional_dataset is not None:
+                    img_4 = additional_dataset[i+3][0].squeeze(0)
+
                 combined_img_top = torch.concat([img_1, img_2], dim = 1)
                 combined_img_bot = torch.concat([img_3, img_4], dim = 1)
                 combined_img = torch.concat([combined_img_top, combined_img_bot], dim = 0)
-                data.append(combined_img.unsqueeze(0))
-
+            
+            data.append(combined_img.unsqueeze(0))
             targets.append(target)
 
         return data, targets
