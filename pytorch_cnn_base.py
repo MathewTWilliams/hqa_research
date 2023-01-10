@@ -1,5 +1,5 @@
 # Author: Matt Williams
-# Version: 12/26/2022
+# Version: 1/10/2022
 
 
 import torch
@@ -9,6 +9,9 @@ from tqdm import tqdm
 from utils import device, MODELS_DIR
 import torch.nn.functional as F
 import os
+import matplotlib.pyplot as plt
+from persistent_homology import make_persistence_barcode, make_vectorized_persistence
+
 
 class PyTorch_CNN_Base(Module):
     """Base class for all Py_Torch models"""
@@ -116,15 +119,38 @@ def outputs_to_predictions(model_output):
     return np.argmax(softmax_probs, axis = -1)
 
 
-def query_model(model, dl_test, attack = None, return_softmax = True):
+def diag_tidy(diag, eps = 1e-3):
+    new_diag = []
+    for _, x in diag:
+        if np.abs(x[0] - x[1]) > eps:
+            new_diag.append((_, x))
+    
+    return new_diag
+
+def query_model(model, model_name, dl_test, ds_name, attack = None, return_softmax = True, avatar = ""):
     outputs = torch.Tensor().to(device)
+    adata = None #SKF
 
     for data, labels in dl_test:
         if attack is not None: 
             data = attack(data, labels)
+            adata = data
         cur_output = model(data.to(device))
         outputs = torch.cat((outputs, cur_output), axis = 0)
     
+
+    if attack is not None:
+        np_img = adata.detach().cpu().numpy()[10]
+        np_label = labels.detach().cpu().numpy()[10]
+        make_persistence_barcode(np_img, np_label, avatar, True)
+        make_vectorized_persistence(np_img, np_label, model_name, ds_name, avatar, attack.attack)
+
+    else:
+        np_img = data.detach().cpu().numpy()[10]
+        np_label = labels.detach().cpu().numpy()[10]
+        make_persistence_barcode(np_img, np_label, avatar, False)
+        make_vectorized_persistence(np_img, np_label, model_name, ds_name, avatar, "None")
+
     outputs = outputs.detach().cpu()
     if return_softmax:
         outputs = outputs_to_predictions(outputs)

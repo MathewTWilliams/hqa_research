@@ -5,17 +5,10 @@ import torch
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-import torchattacks
-from numeric_image_folder import NumericImageFolder
-from torch.utils.data import DataLoader, Subset
-import numpy as np
 import os
 import seaborn as sns
 from utils import *
 import matplotlib.pyplot as plt
-from pytorch_cnn_base import query_model
-from sklearn.model_selection import train_test_split
-from slice_torch_dataset import CombinedDataSet
 import numpy as np
 def run_tsne(model_name, outputs_labels, predictions, ds_name, recon_name, num_classes, attack = None, show_incorrect = True):
 

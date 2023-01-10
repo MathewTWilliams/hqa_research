@@ -33,14 +33,14 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
     ds_test = NumericImageFolder(os.path.join(dataset, root), transform=IMG_FOLDER_TRANFORM)
     dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = NUM_DATA_LOADER_WORKERS)
         
-    model_output = query_model(lenet_model, dl_test, return_softmax = False)
+    model_output = query_model(lenet_model, model_name, dl_test, ds_name, return_softmax = False, avatar=root)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
-    _ = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root)
+    #_ = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root)
 
     fgsm_attack = torchattacks.FGSM(lenet_model)
-    atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
+    atk_model_output = query_model(lenet_model, model_name, dl_test, ds_name, fgsm_attack, return_softmax = False, avatar=root)
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
-    num_incorrect = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, fgsm_attack.attack)
+    '''num_incorrect = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, fgsm_attack.attack)
 
     if root in ["data_original", "data_recon_4"]:
         atk_output_labels = zip(atk_model_output, ds_test.targets)
@@ -55,11 +55,11 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
 
         ds_test = Subset(ds_test, test_idxs)
         dl_test = DataLoader(ds_test, batch_size = MNIST_BATCH_SIZE, shuffle = False, num_workers = NUM_DATA_LOADER_WORKERS)
-        new_model_outputs = query_model(lenet_model, dl_test, return_softmax = False)
+        new_model_outputs = query_model(lenet_model, model_name, dl_test, ds_name, return_softmax = False, avatar=root)
         new_predictions = outputs_to_predictions(torch.Tensor(new_model_outputs))
         targets = [ds_test.dataset.targets[i] for i in ds_test.indices]
         new_outputs_labels = zip(new_model_outputs, targets)
-        run_tsne(model_name, new_outputs_labels, new_predictions, ds_name, root, num_classes, show_incorrect=False)
+        run_tsne(model_name, new_outputs_labels, new_predictions, ds_name, root, num_classes, show_incorrect=False)'''
 
 
 def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, add_root = None):
@@ -77,12 +77,12 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
     ds_test = CombinedDataSet(ds_test, ds_test_2, num_tiles=2, tile_split="v")
     dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = NUM_DATA_LOADER_WORKERS)
         
-    model_output = query_model(lenet_model, dl_test, return_softmax = False)
+    model_output = query_model(lenet_model, model_name, dl_test, ds_name, return_softmax = False, avatar=root)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
     _ = evaluate_dataset(model_name, ds_test._targets, org_predictions, ds_name, root_name)
 
     fgsm_attack = torchattacks.FGSM(lenet_model)
-    atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
+    atk_model_output = query_model(lenet_model, model_name, dl_test, ds_name, fgsm_attack, return_softmax = False, avatar=root)
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
     num_incorrect = evaluate_dataset(model_name, ds_test._targets, atk_predictions, ds_name, root_name, fgsm_attack.attack)
 
@@ -99,7 +99,7 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
 
         ds_test = Subset(ds_test, test_idxs)
         dl_test = DataLoader(ds_test, batch_size = MNIST_BATCH_SIZE, shuffle = False, num_workers=NUM_DATA_LOADER_WORKERS)
-        new_model_outputs = query_model(lenet_model, dl_test, return_softmax = False)
+        new_model_outputs = query_model(lenet_model, model_name, dl_test, ds_name, return_softmax = False, avatar=root)
         new_predictions = outputs_to_predictions(torch.Tensor(new_model_outputs))
         targets = [ds_test.dataset._targets[i] for i in ds_test.indices]
         new_outputs_labels = zip(new_model_outputs, targets)
@@ -109,22 +109,22 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
     
 def main():
 
-    '''for root in tqdm(RECON_ROOT_NAMES):
+    for root in RECON_ROOT_NAMES:
 
-        eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10)
-        eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10)
-        eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47)
+        #eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10)
+        #eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10)
+        #eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47)
 
         eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_GELU_DIR_PATH, root, 10)
 
-        if root != "data_recon_4":
+        '''if root != "data_recon_4":
             eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_FFT_DIR_PATH, root, 10)
             
             eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10)
             eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10)
             eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47)'''
 
-    eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3")
+    #eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3")
 
 if __name__ == "__main__": 
     main()

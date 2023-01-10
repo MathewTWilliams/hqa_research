@@ -70,6 +70,9 @@ MNIST_BATCH_SIZE = 512
 NUM_DATA_LOADER_WORKERS = 4
 RANDOM_SEED = 42
 
+VECT_PERS_OUTPUT_FILE = os.path.join(CWD, "vectorized_persistences.csv")
+VECT_PERS_OUTPUT_COLS = ["Model", "Dataset", "Label", "Reconstruction", "Attack", "Vectorized Persistence"]
+
 MNIST_TRANSFORM = transforms.Compose([
     transforms.Resize(32),
     transforms.CenterCrop(32),
@@ -130,6 +133,26 @@ def add_accuracy_results(model_name, dataset_name, reconstruction, attack_name, 
     results_df = pd.concat([results_df, row_df], ignore_index=True)
 
     results_df.to_csv(ACCURACY_OUTPUT_FILE, index = False)
+
+
+def add_vectorized_persistence(model_name, ds_name, label, reconstruction, attack_name, vector_persistence):
+
+
+    vec_pers_df = pd.read_csv(VECT_PERS_OUTPUT_FILE, index_col=False) \
+                if os.path.exists(VECT_PERS_OUTPUT_FILE) \
+                else pd.DataFrame(columns = VECT_PERS_OUTPUT_COLS)
+
+    row_dict = {"Model" : [model_name],
+                "Dataset" : [ds_name],
+                "Label" : [label],
+                "Reconstruction" : [reconstruction],
+                "Attack": [attack_name],
+                "Vectorized Persistence" : [vector_persistence]}
+    
+    row_df = pd.DataFrame(row_dict, columns=VECT_PERS_OUTPUT_COLS)
+    vec_pers_df = pd.concat([vec_pers_df, row_df], ignore_index=True)
+
+    vec_pers_df.to_csv(VECT_PERS_OUTPUT_FILE, index = False)
 
 
 class MyDataset(Dataset):
