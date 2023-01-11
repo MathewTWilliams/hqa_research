@@ -118,15 +118,6 @@ def outputs_to_predictions(model_output):
     softmax_probs = torch.exp(model_output).numpy()
     return np.argmax(softmax_probs, axis = -1)
 
-
-def diag_tidy(diag, eps = 1e-3):
-    new_diag = []
-    for _, x in diag:
-        if np.abs(x[0] - x[1]) > eps:
-            new_diag.append((_, x))
-    
-    return new_diag
-
 def query_model(model, model_name, dl_test, ds_name, attack = None, return_softmax = True, avatar = ""):
     outputs = torch.Tensor().to(device)
     adata = None #SKF
