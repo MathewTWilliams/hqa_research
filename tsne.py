@@ -10,23 +10,14 @@ import seaborn as sns
 from utils import *
 import matplotlib.pyplot as plt
 import numpy as np
-def run_tsne(model_name, outputs_labels, predictions, ds_name, recon_name, num_classes, attack = None, show_incorrect = True):
+def run_tsne(model_name, outputs, labels, ds_name, recon_name, num_classes, attack = None, show_incorrect = True):
 
     tsne_components = 2
     pca_components = 5
 
-    points_to_show = []
-    for (output, target), pred in zip(outputs_labels, predictions):
-        if show_incorrect and target != pred:
-            points_to_show.append((output, target))
-        elif not show_incorrect and target == pred:
-            points_to_show.append((output, target))
-
-    train = [data[0] for data in points_to_show]
-    labels = [data[1] for data in points_to_show]
-    train = StandardScaler().fit_transform(train)
+    outputs = StandardScaler().fit_transform(outputs)
     pca = PCA(n_components=pca_components, random_state=42)
-    pca_res = pca.fit_transform(train)
+    pca_res = pca.fit_transform(outputs)
     tsne = TSNE(n_components=tsne_components, random_state = 42, init="pca", learning_rate="auto")
     tsne_res = tsne.fit_transform(pca_res)
 

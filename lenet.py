@@ -8,6 +8,9 @@ from pytorch_cnn_base import PyTorch_CNN_Base
 import torch.nn.init as init
 
 class Lenet_5(PyTorch_CNN_Base):
+    """
+    Classifier used for the various MNIST related datsets.
+    """
     def __init__(self, train_loader, valid_loader, num_classes, save_path, stop_early = False):
         super(Lenet_5, self).__init__(train_loader,
                                     valid_loader,

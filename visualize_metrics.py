@@ -90,7 +90,6 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
             atk_acc_values.append(row_ds["Average Accuracy"])
 
     print(second_y_values)
-    #TODO fix second y axis order and legend
     fig, ax1 = plt.subplots()
     plt.figure(figsize=(20,10))
     plt.title(title, fontdict=font_dict)

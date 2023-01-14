@@ -16,6 +16,14 @@ from persistent_homology import make_persistence_barcode, make_vectorized_persis
 class PyTorch_CNN_Base(Module):
     """Base class for all Py_Torch models"""
     def __init__(self, train_loader, valid_loader, num_classes, save_path, stop_early = False):
+        """
+        Arguments: 
+        - train_loader: DataLoader for training set. 
+        - valid_loader: DataLoader for validation set. Can be None.
+        - num_classes: Number of classes in the dataset.
+        - save_path: File path at which to save the model after training.
+        - stop_early: should training stop early if the validation loss increases?   
+        """
 
         super(PyTorch_CNN_Base, self).__init__()
         self._train_loader = train_loader
@@ -118,30 +126,15 @@ def outputs_to_predictions(model_output):
     softmax_probs = torch.exp(model_output).numpy()
     return np.argmax(softmax_probs, axis = -1)
 
-def query_model(model, model_name, dl_test, ds_name, attack = None, return_softmax = True, avatar = ""):
+def query_model(model, dl_test, attack = None, return_softmax = True):
     outputs = torch.Tensor().to(device)
-    adata = None #SKF
-
+    
     for data, labels in dl_test:
         if attack is not None: 
             data = attack(data, labels)
-            adata = data
         cur_output = model(data.to(device))
         outputs = torch.cat((outputs, cur_output), axis = 0)
     
-
-    if attack is not None:
-        np_img = adata.detach().cpu().numpy()[10]
-        np_label = labels.detach().cpu().numpy()[10]
-        make_persistence_barcode(np_img, np_label, avatar, True)
-        make_vectorized_persistence(np_img, np_label, model_name, ds_name, avatar, attack.attack)
-
-    else:
-        np_img = data.detach().cpu().numpy()[10]
-        np_label = labels.detach().cpu().numpy()[10]
-        make_persistence_barcode(np_img, np_label, avatar, False)
-        make_vectorized_persistence(np_img, np_label, model_name, ds_name, avatar, "None")
-
     outputs = outputs.detach().cpu()
     if return_softmax:
         outputs = outputs_to_predictions(outputs)

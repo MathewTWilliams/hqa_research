@@ -7,12 +7,16 @@ from torchvision.transforms.functional import crop
 
 class TiledDataset(Dataset):
     '''
-    Usage:
-    - Use an ImageFolder class to load in data like we are training Lenet.
-    - 
+    This class takes in an ImageFolder Data set and splits the Images into a 
+    larger dataset. 
     '''
     def __init__(self, orig_dataset, num_tiles = 2, tile_split = "v"):
-
+        """
+        Arguments: 
+        - orig_dataset: ImageFolder instance of the original dataset.
+        - num_tiles: How may times should an image be split?
+        - tile_split: In what orientation should the image be split?
+        """
         self._num_tiles = num_tiles
         self._tile_split = tile_split
         self._data, self._targets = self._tile_dataset(orig_dataset)
@@ -66,7 +70,15 @@ class TiledDataset(Dataset):
 
 
 class CombinedDataSet(Dataset):
+    """This class takes in one or two Image Folder datasets and combines the tiles into images. """
     def __init__(self, orig_dataset, additional_dataset = None, num_tiles = 2, tile_split= "v"):
+        """
+        Arguments: 
+        - orig_dataset. An ImageFolder Instance of the original dataset. 
+        - additional_dataset: Another optional ImageFolder dataset. Used when we want 
+        to evaluate slices of different reconstruciton layers of the same dataset.
+        - num_tiles: How many times should an image be split?
+        - tile_split: In what orientation should the Image be split? """
         self._num_tiles = num_tiles
         self._tile_split = tile_split
         self._data, self._targets = self._combine_dataset(orig_dataset, additional_dataset)
