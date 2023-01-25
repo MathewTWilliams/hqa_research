@@ -52,11 +52,6 @@ LENET_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_mnist.pt")
 LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_fash_mnist.pt")
 LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "lenet_emnist.pt")
 
-#GELU Experiment
-HQA_MNIST_GELU_MODEL_NAME = "hqa_mnist_model_GELU"
-HQA_MNIST_GELU_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model_GELU.pt")
-IMG_MNIST_GELU_DIR_PATH = os.path.join(IMG_DIR_PATH, "MNIST_GELU")
-
 #FFT Experiment
 HQA_MNIST_FFT_MODEL_NAME = "hqa_mnist_model_FFT"
 HQA_MNIST_FFT_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model_FFT.pt")
@@ -71,7 +66,11 @@ NUM_DATA_LOADER_WORKERS = 4
 RANDOM_SEED = 42
 
 VECT_PERS_OUTPUT_FILE = os.path.join(CWD, "vectorized_persistences.csv")
-VECT_PERS_OUTPUT_COLS = ["Model", "Dataset", "Label", "Reconstruction", "Attack", "Vectorized Persistence"]
+VECT_PERS_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstruction", "Attack", "Vectorized Persistence"]
+
+PERS_ETP_OUTPUT_FILE = os.path.join(CWD, "persistence_entropies.csv")
+PERS_EPT_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstruction", "Attack", "Input", "Persistence Entropies"]
+
 
 MNIST_TRANSFORM = transforms.Compose([
     transforms.Resize(32),
@@ -118,41 +117,52 @@ IMG_FOLDER_TRANFORM = transforms.Compose([
     transforms.ToTensor()
 ])
 
-def add_accuracy_results(model_name, dataset_name, reconstruction, attack_name, avg_accuracy):
 
-    results_df = pd.read_csv(ACCURACY_OUTPUT_FILE, index_col = False) \
-                if os.path.exists(ACCURACY_OUTPUT_FILE) \
-                else pd.DataFrame(columns=ACCURACY_FILE_COLS)
+def add_row_to_csv(output_file, output_cols, row_dict):
+    results_df = pd.read_csv(output_file, index_col=False) \
+                if os.path.exists(output_file) \
+                else pd.DataFrame(columns = output_cols) 
+
+    row_df = pd.DataFrame(row_dict, columns = output_cols)
+    results_df = pd.concat([results_df, row_df], ignore_index=True)
+    results_df.to_csv(output_file, index = False)
+
+def add_accuracy_results(model_name, dataset_name, reconstruction, attack_name, avg_accuracy):
 
     row_dict = {"Model" : [model_name], 
                 "Dataset" : [dataset_name], 
                 "Reconstruction" : [reconstruction],
                 "Attack" : [attack_name],
                 "Average Accuracy" : [avg_accuracy]}
-    row_df = pd.DataFrame(row_dict, columns=ACCURACY_FILE_COLS)
-    results_df = pd.concat([results_df, row_df], ignore_index=True)
 
-    results_df.to_csv(ACCURACY_OUTPUT_FILE, index = False)
+    add_row_to_csv(ACCURACY_OUTPUT_FILE, ACCURACY_FILE_COLS, row_dict)
 
 
-def add_vectorized_persistence(model_name, ds_name, label, reconstruction, attack_name, vector_persistence):
-
-
-    vec_pers_df = pd.read_csv(VECT_PERS_OUTPUT_FILE, index_col=False) \
-                if os.path.exists(VECT_PERS_OUTPUT_FILE) \
-                else pd.DataFrame(columns = VECT_PERS_OUTPUT_COLS)
+def add_vectorized_persistence(model_name, ds_name, label, pred, reconstruction, attack_name, vector_persistence):
 
     row_dict = {"Model" : [model_name],
                 "Dataset" : [ds_name],
                 "Label" : [label],
+                "Prediction" : [pred],
                 "Reconstruction" : [reconstruction],
                 "Attack": [attack_name],
                 "Vectorized Persistence" : [vector_persistence]}
     
-    row_df = pd.DataFrame(row_dict, columns=VECT_PERS_OUTPUT_COLS)
-    vec_pers_df = pd.concat([vec_pers_df, row_df], ignore_index=True)
+    add_row_to_csv(VECT_PERS_OUTPUT_FILE, VECT_PERS_OUTPUT_COLS, row_dict)
 
-    vec_pers_df.to_csv(VECT_PERS_OUTPUT_FILE, index = False)
+
+def add_persistence_entropy(model_name, ds_name, label, pred, reconstruction, attack_name, input_type, persistence_entropies):
+
+    row_dict = {"Model" : [model_name],
+            "Dataset" : [ds_name],
+            "Label" : [label],
+            "Prediction" : [pred],
+            "Reconstruction" : [reconstruction],
+            "Attack": [attack_name],
+            "Input" : [input_type],
+            "Persistence Entropies" : [persistence_entropies]}
+
+    add_row_to_csv(PERS_ETP_OUTPUT_FILE, PERS_EPT_OUTPUT_COLS, row_dict)
 
 
 class MyDataset(Dataset):

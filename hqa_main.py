@@ -135,20 +135,12 @@ def main(model_name, model_save_path, img_save_dir, dl_train, dl_test,
 
 def run_regular_datasets():
 
-    '''dl_train, _, dl_test = load_mnist(validate=False)
+    dl_train, _, dl_test = load_mnist(validate=False)
     main(HQA_MNIST_MODEL_NAME,
         HQA_MNIST_SAVE_PATH,
         IMG_MNIST_DIR_PATH,
         dl_train,
         dl_test)
-
-    dl_train, _, dl_test = load_mnist(validate=False)
-    main(HQA_MNIST_GELU_MODEL_NAME,
-        HQA_MNIST_GELU_SAVE_PATH,
-        IMG_MNIST_GELU_DIR_PATH,
-        dl_train,
-        dl_test)'''
-
 
     dl_train, _, dl_test = load_fft_mnist(validate=False)
     main(
@@ -159,7 +151,7 @@ def run_regular_datasets():
         dl_test, 
         layers = 4)
 
-    '''dl_train, _, dl_test = load_fashion_mnist(validate=False)
+    dl_train, _, dl_test = load_fashion_mnist(validate=False)
     main(HQA_FASH_MNIST_MODEL_NAME,
         HQA_FASH_MNIST_SAVE_PATH,
         IMG_FASH_MNIST_DIR_PATH,
@@ -172,7 +164,7 @@ def run_regular_datasets():
         HQA_EMNIST_SAVE_PATH,
         IMG_EMNIST_DIR_PATH,
         dl_train,
-        dl_test)'''
+        dl_test)
 
 
 def run_tiled_datasets(num_tiles, tile_split):

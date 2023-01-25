@@ -1,7 +1,7 @@
 # Author: Matt Williams
 # Version 12/26/2022
 import torch
-from torch.nn import Linear, Conv2d, Sequential, Dropout
+from torch.nn import Linear, Conv2d, Sequential, Dropout, GELU
 from torch.nn import Softmax, Flatten, MaxPool2d, ReLU, CrossEntropyLoss
 from torch.optim import SGD
 from pytorch_cnn_base import PyTorch_CNN_Base
@@ -34,13 +34,16 @@ class Lenet_5(PyTorch_CNN_Base):
 
         cnn_layers = Sequential(
             conv_1, 
-            ReLU(inplace=True), 
+            #ReLU(inplace=True),
+            GELU(), 
             MaxPool2d(kernel_size=2, stride = 2),
             conv_2, 
-            ReLU(inplace=True), 
+            #ReLU(inplace=True),
+            GELU(),
             MaxPool2d(kernel_size=2, stride = 2),
             conv_3,
-            ReLU(inplace = True),
+            #ReLU(inplace = True),
+            GELU(),
             MaxPool2d(kernel_size=2, stride = 1)
         )
 
@@ -58,7 +61,8 @@ class Lenet_5(PyTorch_CNN_Base):
         linear_layers = Sequential(
             Flatten(),
             linear_1, 
-            ReLU(inplace=True), 
+            #ReLU(inplace=True),
+            GELU(), 
             Dropout(),
             linear_2
             # not needed since Pytorch's implementation of CrossEntropyLoss

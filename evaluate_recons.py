@@ -13,9 +13,10 @@ from slice_torch_dataset import CombinedDataSet
 from pytorch_cnn_base import query_model, outputs_to_predictions
 from tsne import run_tsne
 from sklearn.model_selection import train_test_split
-from persistent_homology import make_persistence_barcode, make_vectorized_persistence
+from persistent_homology import *
 
-def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, ret_correct_idxs = True, save_result = True, attack = None):
+
+def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, save_result = True, attack = None):
     """
     Arguments: 
     - model_name : name of the model that gave the predictions.
@@ -26,22 +27,60 @@ def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, 
     - ret_correct_idxs : should the method return the indicies of the images predicted correctly?
     - save_result: should this evaluation be saved to the classification_accuracies.csv file?
     - attack: the name of the attack that has been applied to the model (if any). """
-    to_return = []
+    correct_idxs = []
+    incorrect_idxs = []
     
     for i, (label, pred) in enumerate(zip(predictions, test_labels)):
-        if ret_correct_idxs and label == pred:
-            to_return.append(i)
-        elif not ret_correct_idxs and label != pred:
-            to_return.append(i)
+        if label == pred:
+            correct_idxs.append(i)
+        elif label != pred:
+            incorrect_idxs.append(i)
 
     if save_result:
-        num_correct = len(to_return) if ret_correct_idxs else len(test_labels) - len(to_return)
-        avg_accuracy = num_correct / len(test_labels)
+        avg_accuracy = len(correct_idxs) / len(test_labels)
         attack_name = attack if attack != None else "None"
         add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
 
-    return to_return
+    return correct_idxs, incorrect_idxs
 
+def make_persistence_metrics(model, ds_test, predictions, ds_idxs, model_name, ds_name, root, attack):
+    #Calculate Entropy of incorrectly classified points and attacked counterparts
+    for idx in ds_idxs:
+        img, label = ds_test[idx]
+        pred = predictions[idx]
+        atk_img = attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
+
+        try:
+            org_entr = calculate_entropy(img.numpy(), label, pred, root)
+            atk_entr = calculate_entropy(atk_img.numpy(), label, pred, root, attack.attack)
+
+            add_persistence_entropy(model_name, ds_name, label, pred, root, "None", "Image", org_entr)
+            add_persistence_entropy(model_name, ds_name, label, pred, root, attack.attack, "Image", atk_entr)
+
+        except IndexError as e: 
+            print("IndexError: Persistence Inteval values were all infinity")
+
+
+        try: 
+            org_entr = calc_entropy_model_CNN_stack(model, img, label, pred, root)
+            atk_entr = calc_entropy_model_CNN_stack(model, atk_img, label, pred, root, attack.attack)
+
+            add_persistence_entropy(model_name, ds_name, label, pred, root, "None", "CNN Output", org_entr)
+            add_persistence_entropy(model_name, ds_name, label, pred, root, attack.attack, "CNN Output", atk_entr)
+            
+        except IndexError as e:
+            print("IndexError: Persistence Inteval values were all infinity")
+
+        try:     
+            org_img_pipeline = make_vectorized_persistence(img.numpy(), label, root)
+            ak_img_pipeline = make_vectorized_persistence(atk_img.numpy(), label, root, attack.attack)
+
+            add_vectorized_persistence(model_name, ds_name, label, pred, root, "None", org_img_pipeline)
+            add_vectorized_persistence(model_name, ds_name, label, pred, root, attack.attack, ak_img_pipeline)
+
+        except ValueError as e: 
+            print("ValueError: Division by zero error in Scalar step on regular image")
+        
 
 def eval_model(model_save_path, model_name, dataset, root, num_classes):
     """
@@ -64,47 +103,37 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
     #query model and evaluate results as normal
     model_output = query_model(lenet_model, dl_test, return_softmax = False)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
-    _ = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root, save_result = True)
+    org_correct_idxs,_ = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root, save_result = True)
 
     #make fgsm attack, query attacked model, evaluate the results
     fgsm_attack = torchattacks.FGSM(lenet_model)
     atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
-    incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, False, True, fgsm_attack.attack)
+    _, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
 
     #Single example of persistent barcode with misclassified point and its attacked counterpart 
-    img, label = ds_test[incorrect_idxs[0]]
+    #Show output of the model's CNN stack
+    img, label = ds_test[atk_incorrect_idxs[0]]
     make_persistence_barcode(img.numpy(), label, root, False)
-    np_atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).cpu().numpy()
-    make_persistence_barcode(np_atk_img, label, root, True)
+    barcode_model_CNN_Stack(lenet_model, img, label, root, False)
+    atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).cpu()
+    make_persistence_barcode(atk_img.numpy(), label, root, True)
+    barcode_model_CNN_Stack(lenet_model, atk_img, label, root, True)
 
-    #Vectorized Persistence of incorrectly classified points and attacked counterparts
-    atk_mis_outputs = []
-    mis_true_labels = []
-    for idx in incorrect_idxs:
-        img, label = ds_test[idx]
-        
-        #grabbing information for later
-        atk_mis_outputs.append(atk_model_output[idx])
-        mis_true_labels.append(label)
-        try:     
-            make_vectorized_persistence(img.numpy(), label, model_name, ds_name, root)
-        except ValueError as e: 
-            print("ValueError: Division by zero error in Scalar step on regular image")
-        np_atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).cpu().numpy()
-        try: 
-            make_vectorized_persistence(np_atk_img, label, model_name, ds_name, root, fgsm_attack.attack)
-        except ValueError as e: 
-            print("ValueError: Division by zero error in Scalar step on attacked image")
-
-    #TSNE related
-    if root in ["data_original", "data_recon_4"]:
-        run_tsne(model_name, atk_mis_outputs, mis_true_labels, ds_name, root, num_classes, fgsm_attack.attack)
+    #Calculate Entropies
+    make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root, fgsm_attack)
+    make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
     
+    #TSNE related
+    '''if root in ["data_original", "data_recon_4"]:
+        atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
+        atk_mis_true_labels = [ds_test.targets[idx] for idx in atk_incorrect_idxs]
+        run_tsne(model_name, atk_mis_outputs, atk_mis_true_labels, ds_name, root, num_classes, "model output", fgsm_attack.attack, misclassified=True)
+
         test_idxs, _ = train_test_split(
             range(len(ds_test)),
             stratify = ds_test.targets,
-            train_size = len(incorrect_idxs),
+            train_size = len(atk_incorrect_idxs),
             random_state = RANDOM_SEED
         )
 
@@ -114,12 +143,13 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
         new_model_outputs = query_model(lenet_model, dl_test, return_softmax = False)
         new_predictions = outputs_to_predictions(torch.Tensor(new_model_outputs))
         current_targets = [ds_test.dataset.targets[i] for i in test_idxs]
-        correct_idxs = evaluate_dataset(model_name, current_targets, new_predictions, ds_name, root, save_result = False)
+        correct_idxs,_ = evaluate_dataset(model_name, current_targets, new_predictions, ds_name, root, save_result = False)
 
         correct_outputs = [new_model_outputs[idx] for idx in correct_idxs]
         correct_targets = [current_targets[idx] for idx in correct_idxs]
-        run_tsne(model_name, correct_outputs, correct_targets, ds_name, root, num_classes, show_incorrect=False)
-
+        correct_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in correct_idxs]
+        run_tsne(model_name, correct_outputs, correct_targets, ds_name, root, num_classes, "model output")
+        run_tsne(model_name, correct_images, correct_targets, ds_name, root, num_classes, "input image")'''
 
 def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, add_root = None):
     """
@@ -152,19 +182,18 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
     # query model and evaluate the results    
     model_output = query_model(lenet_model, dl_test, return_softmax = False)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
-    _ = evaluate_dataset(model_name, ds_test._targets, org_predictions, ds_name, root_name, save_result=True)
+    _,_ = evaluate_dataset(model_name, ds_test._targets, org_predictions, ds_name, root_name, save_result=True)
 
     # make fgsm attack, query attacked model, evaluate the results
     fgsm_attack = torchattacks.FGSM(lenet_model)
     atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
-    incorrect_idxs = evaluate_dataset(model_name, ds_test._targets, atk_predictions, ds_name, root_name, False, True,  fgsm_attack.attack)
+    _, incorrect_idxs = evaluate_dataset(model_name, ds_test._targets, atk_predictions, ds_name, root_name, True, fgsm_attack.attack)
 
-    atk_mis_outputs = [atk_model_output[idx] for idx in incorrect_idxs]
-    mis_true_labels = [ds_test[idx][1] for idx in incorrect_idxs]
-
-    if add_root is not None or root in ["data_original", "data_recon_3"]:
-        run_tsne(model_name, atk_mis_outputs, mis_true_labels, ds_name, root_name, num_classes, fgsm_attack.attack)
+    '''if add_root is not None or root in ["data_original", "data_recon_3"]:
+        atk_mis_outputs = [atk_model_output[idx] for idx in incorrect_idxs]
+        mis_true_labels = [ds_test._targets[idx] for idx in incorrect_idxs]
+        run_tsne(model_name, atk_mis_outputs, mis_true_labels, ds_name, root_name, num_classes, "model output", fgsm_attack.attack, misclassified=True)
 
         test_idxs, _ = train_test_split(
             range(len(ds_test)),
@@ -179,11 +208,13 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
         new_model_outputs = query_model(lenet_model, dl_test, return_softmax = False)
         new_predictions = outputs_to_predictions(torch.Tensor(new_model_outputs))
         current_targets = [ds_test.dataset._targets[idx] for idx in test_idxs]
-        correct_idxs = evaluate_dataset(model_name, current_targets, new_predictions, ds_name, root, save_result = False)
+        correct_idxs,_ = evaluate_dataset(model_name, current_targets, new_predictions, ds_name, root_name, save_result = False)
 
         correct_outputs = [new_model_outputs[idx] for idx in correct_idxs]
         correct_targets = [current_targets[idx] for idx in correct_idxs]
-        run_tsne(model_name, correct_outputs, correct_targets, ds_name, root_name, num_classes, show_incorrect = False)
+        correct_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in correct_idxs]
+        run_tsne(model_name, correct_outputs, correct_targets, ds_name, root_name, num_classes, "model output")
+        run_tsne(model_name, correct_images, correct_targets, ds_name, root_name, num_classes, "input image")'''
 
 def main():
 
@@ -192,8 +223,6 @@ def main():
         eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10)
         eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10)
         eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47)
-
-        #eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_GELU_DIR_PATH, root, 10)
         
         if root != "data_recon_4":
             #eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_FFT_DIR_PATH, root, 10)
