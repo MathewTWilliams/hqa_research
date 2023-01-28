@@ -1,10 +1,26 @@
 # Author: Matt Williams
-# Version: 12/26/2022
+# Version: 1/26/2022
+
+import numpy as np
+from tqdm import tqdm
+import pytorch_lightning as pl
+from matplotlib import pyplot as plt
+
+# Signal related
+'''
+import lmdb
+import pickle
+from torchsig.datasets import ModulationsDataset
+from torchsig.utils.dataset import SignalDataset
+import torchsig.transforms as ST
+from torchsig.utils.visualize import IQVisualizer, SpectrogramVisualizer
+'''
+
 
 from torchvision.datasets import MNIST, FashionMNIST, EMNIST
 from torch.utils.data import DataLoader, Subset
 from utils import MNIST_TRANSFORM, EMNIST_TRANSFORM, MNIST_BATCH_SIZE, NUM_DATA_LOADER_WORKERS, \
-RANDOM_SEED, FFT_MNIST_TRANSFORM
+RANDOM_SEED, FFT_MNIST_TRANSFORM #Signal Related, SIG_TRANSFORM
 from sklearn.model_selection import train_test_split
 from slice_torch_dataset import TiledDataset
 
@@ -15,6 +31,9 @@ FASH_MNIST_TRAIN_PATH = '/tmp/fasion_mnist'
 FASH_MNIST_TEST_PATH = '/tmp/fasion_mnist_test_'
 EMNIST_TRAIN_PATH = '/tmp/emnist'
 EMNIST_TEST_PATH = '/tmp/emnist_test_'
+SIG_TRAIN_PATH = '/tmp/sig'
+SIG_TEST_PATH = '/tmp/sig_test_'
+
 
 def _make_train_valid_split(ds_train, len_ds_test):
     train_idxs, valid_idxs, _, _ = train_test_split(
@@ -86,4 +105,47 @@ def load_emnist(split = "balanced", validate = False, return_tiled = False, num_
     return _make_data_loaders(ds_train, ds_test, validate, return_tiled, num_tiles, tile_split)
 
 
+# Signal related
+'''def load_sig(classes, level = 0, include_snr = False, dim_size = 32, samples_per_class = 100):
+    classes = [
+        "bpsk","8pam","8psk","16qam","16pam",
+        "64qam","64psk","256qam","1024qam","16gmsk",
+        ]
 
+    level = 0
+
+    include_snr = False
+
+    num_classes = len(classes)
+    num_iq_samples = dim_size * dim_size
+
+    data_transform = ST.Compose([
+        ST.Normalize(norm=np.inf), 
+        ST.ComplexTo2D()
+    ])
+
+    
+    # Reshaping does not work
+    ST.Lambda(lambda x: SignalData(\
+                data = x.iq_data.reshape((x.iq_data.shape[0], int(round(np.sqrt(x.iq_data.shape[1]))), int(round(np.sqrt(x.iq_data.shape[1])))))), \
+                item_type=np.dtype(np.float64), 
+                data_type=np.dtype(np.float64),
+                signal_description=x.signal_description, \
+            )
+
+    # Seed the dataset instantiation for reporduceability
+    pl.seed_everything(1234567891)
+
+    ds_train = ModulationDataset(
+        classes=classes,
+        use_class_idx = True, #False,
+        level = level, 
+        num_iq_samples = 1024,
+        num_samples = int(num_classes*samples_per_class),
+        include_snr = include_snr, 
+        transform = data_transform
+    )
+
+    ds_test_len = int(num_classes * samples_per_class/3)
+    ds_train, ds_test = _make_train_valid_split(ds_train, ds_test_len)
+    return _make_data_loaders(ds_train, ds_test, validate, return_tiled, num_tiles, tile_split)'''

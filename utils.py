@@ -26,6 +26,7 @@ HQA_EMNIST_MODEL_NAME = "hqa_emnist_model"
 HQA_TILED_MNIST_MODEL_NAME = "hqa_tiled_mnist_model"
 HQA_TILED_FASH_MNIST_MODEL_NAME = "hqa_tiled_fash_mnist_model"
 HQA_TILED_EMNIST_MODEL_NAME = "hqa_tiled_emnist_model"
+HQA_SIG_MODEL_NAME = "hqa_sig_model"
 
 CWD = os.path.abspath(os.getcwd())
 
@@ -37,6 +38,8 @@ IMG_EMNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "EMNIST")
 IMG_TILED_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Tiled_MNIST")
 IMG_TILED_FASH_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Tiled_Fashion_MNIST")
 IMG_TILED_EMNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Tiled_EMNIST")
+IMG_SIG_DIR_PATH = os.path.join(IMG_DIR_PATH, "Sig")
+
 
 #Model relatd file paths
 MODELS_DIR = os.path.join(CWD, "models")
@@ -47,6 +50,7 @@ HQA_EMNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_emnist_model.pt")
 HQA_TILED_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_tiled_mnist_model.pt")
 HQA_TILED_FASH_MNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_tiled_fash_mnist_model.pt")
 HQA_TILED_EMNIST_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_tiled_emnist_model.pt")
+HQA_SIG_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_sig_model.pt")
 
 LENET_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_mnist.pt")
 LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_fash_mnist.pt")
@@ -80,11 +84,13 @@ MNIST_TRANSFORM = transforms.Compose([
 
 def fft_image(img):
     data = np.array(img)
-    fftdata = fp.rfft(fp.rfft(data, axis = 0), axis = 1)
+    #fftdata = fp.rfft(fp.rfft(data, axis=0), axis = 1)
+    fftdata = np.abs(fp.rff2(data))
     remmax = lambda x : x / x.max()
     remmin = lambda x : x - np.amin(x, axis = (0,1), keepdims=True)
-    toint8 = lambda x: (remmax(remmin(x)) * (256 - 1e-4)).astype(int)
-    img = Image.new('L', toint8(fftdata).shape[1::-1])
+    toint8 = lambda x : (remmax(remmin(x)) * (256 - 1e-4)).astype(int)
+    #img = Image.new("L", toint8(fftdata).shape[1::-1])
+    img = Image.fromarray(toint8(fftdata)).convert('L')
     return img
 
 FFT_MNIST_TRANSFORM = transforms.Compose([
@@ -117,6 +123,11 @@ IMG_FOLDER_TRANFORM = transforms.Compose([
     transforms.ToTensor()
 ])
 
+# Signal Related
+'''SIG_TRANSFORM = transforms.Compose([
+
+])
+'''
 
 def add_row_to_csv(output_file, output_cols, row_dict):
     results_df = pd.read_csv(output_file, index_col=False) \

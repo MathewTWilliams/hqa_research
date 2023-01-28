@@ -72,8 +72,8 @@ def make_persistence_metrics(model, ds_test, predictions, ds_idxs, model_name, d
             print("IndexError: Persistence Inteval values were all infinity")
 
         try:     
-            org_img_pipeline = make_vectorized_persistence(img.numpy(), label, root)
-            ak_img_pipeline = make_vectorized_persistence(atk_img.numpy(), label, root, attack.attack)
+            org_img_pipeline = make_vectorized_persistence(img.numpy(), label, pred, root)
+            ak_img_pipeline = make_vectorized_persistence(atk_img.numpy(), label, pred, root, attack.attack)
 
             add_vectorized_persistence(model_name, ds_name, label, pred, root, "None", org_img_pipeline)
             add_vectorized_persistence(model_name, ds_name, label, pred, root, attack.attack, ak_img_pipeline)

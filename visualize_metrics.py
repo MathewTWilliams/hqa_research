@@ -58,7 +58,7 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
     font_dict = {'family': 'Arial', 
                  'color' : 'darkblue', 
                  'weight' : 'normal', 
-                 'size' : 16 }
+                 'size' : 20}
 
     cur_df = accuracy_df[(accuracy_df["Dataset"] == dataset) & \
                         (accuracy_df["Model"] == model_name)]
@@ -89,23 +89,25 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
         else:
             atk_acc_values.append(row_ds["Average Accuracy"])
 
-    print(second_y_values)
     fig, ax1 = plt.subplots()
     plt.figure(figsize=(20,10))
     plt.title(title, fontdict=font_dict)
     ax1 = plt.gca()
     ax1.set_xlabel("Reconstruction Layer", **font_dict)
     ax1.set_ylabel("Accuracy", **font_dict)
-    ax1.plot(x_ticks, reg_acc_values, label = "Regular", color = "blue")
-    ax1.plot(x_ticks, atk_acc_values, label = "FGSM Attack", color = "orange")
-    ax1.legend(loc=3)
+    plot_1 = ax1.plot(x_ticks, reg_acc_values, color = "blue")
+    plot_2 = ax1.plot(x_ticks, atk_acc_values, color = "orange")
+    all_plots = plot_1 + plot_2
+    labels = ["Regular Accuracy", "FGSM Attack Accuracy"]
 
     if second_y_ax is not None:
         ax2 = ax1.twinx()
         ax2.set_ylabel(second_y_ax, **font_dict, rotation = 270)
-        ax2.plot(x_ticks, second_y_values, label = "2nd Regular", color = "purple")
-        ax2.legend(loc=0)
-    
+        plot_3 = ax2.plot(x_ticks, second_y_values, color = "purple")
+        all_plots += plot_3
+        labels.append("Compression Rate")
+
+    ax1.legend(all_plots, labels, loc = 0)
     plt.savefig(os.path.join(VISUAL_DIR, f"{model_name}_{dataset}_accuracies.png"))
     plt.clf()
 
@@ -114,7 +116,6 @@ def main():
     ds_hqa_map = {"EMNIST" : HQA_EMNIST_MODEL_NAME,
                 "Fashion_MNIST" : HQA_FASH_MNIST_MODEL_NAME,
                 "MNIST" : HQA_MNIST_MODEL_NAME,
-                "MNIST_GELU" : HQA_MNIST_GELU_MODEL_NAME,
                 "Tiled_EMNIST" : HQA_TILED_EMNIST_MODEL_NAME,
                 "Tiled_Fashion_MNIST" : HQA_TILED_FASH_MNIST_MODEL_NAME,
                 "Tiled_MNIST" : HQA_TILED_MNIST_MODEL_NAME}
