@@ -39,7 +39,7 @@ def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, 
     if save_result:
         avg_accuracy = len(correct_idxs) / len(test_labels)
         attack_name = attack if attack != None else "None"
-        add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
+        #add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
 
     return correct_idxs, incorrect_idxs
 
@@ -71,7 +71,7 @@ def make_persistence_metrics(model, ds_test, predictions, ds_idxs, model_name, d
         except IndexError as e:
             print("IndexError: Persistence Inteval values were all infinity")
 
-        try:     
+        '''try:     
             org_img_pipeline = make_vectorized_persistence(img.numpy(), label, root)
             ak_img_pipeline = make_vectorized_persistence(atk_img.numpy(), label, root, attack.attack)
 
@@ -79,7 +79,7 @@ def make_persistence_metrics(model, ds_test, predictions, ds_idxs, model_name, d
             add_vectorized_persistence(model_name, ds_name, label, pred, root, attack.attack, ak_img_pipeline)
 
         except ValueError as e: 
-            print("ValueError: Division by zero error in Scalar step on regular image")
+            print("ValueError: Division by zero error in Scalar step on regular image")'''
         
 
 def eval_model(model_save_path, model_name, dataset, root, num_classes):
@@ -218,18 +218,18 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
 
 def main():
 
-    for root in RECON_ROOT_NAMES:
+    for root in RECON_ROOT_NAMES[4:]:
 
         eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10)
-        eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10)
-        eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47)
+        #eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10)
+        #eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47)
         
         if root != "data_recon_4":
             #eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_FFT_DIR_PATH, root, 10)
             
             eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10)
-            eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10)
-            eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47)
+            #eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10)
+            #eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47)
 
     eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3")
 

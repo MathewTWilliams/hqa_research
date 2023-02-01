@@ -84,7 +84,7 @@ def make_persistence_barcode(np_img, label, avatar = "", attacked = False):
     file_end = "_a.png" if attacked else ".png"
     file_name = f"Pers{label}_{avatar}{file_end}"
     fig.savefig(os.path.join(VISUAL_DIR, file_name))
-    plt.clf()
+    plt.close("all")
 
 def calc_entropy_model_CNN_stack(model, tensor_img, true_label, pred_label, avatar, attack_name = "None"):
     dlmap = _get_CNN_stack_output(model, tensor_img)
