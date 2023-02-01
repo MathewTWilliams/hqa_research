@@ -8,7 +8,7 @@ from torchvision.utils import make_grid
 import numpy as np
 from hqa import *
 import pandas as pd
-from load_datasets import load_mnist, load_emnist, load_fashion_mnist, load_fft_mnist
+from load_datasets import *
 
 def main(model_name, model_save_path, img_save_dir, dl_train, dl_test, 
         is_tiled = False, num_tiles = 0, layers = 5):
@@ -165,6 +165,16 @@ def run_regular_datasets():
         IMG_EMNIST_DIR_PATH,
         dl_train,
         dl_test)
+
+    # Signal related
+    '''dl_train, _, dl_test = load_sig(validate=False)
+    main(HQA_SIG_MODEL_NAME, 
+        HQA_SIG_SAVE_PATH,
+        IMG_SIG_DIR_PATH, 
+        dl_train, 
+        dl_test)'''
+
+    
 
 
 def run_tiled_datasets(num_tiles, tile_split):

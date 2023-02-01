@@ -111,7 +111,7 @@ def calculate_entropy(np_img, true_label, pred_label, avatar, attack_name = "Non
     print(f"Entropies of {avatar} persistence bars for{print_mid} {true_label} declared {pred_label}: {inst0_ent} and {inst1_ent}")
     return entr
 
-def make_vectorized_persistence(np_img, label, reconstruction, attack_name = "None"):
+def make_vectorized_persistence(np_img, label, pred, reconstruction, attack_name = "None"):
     
     steps = [
         ("binarizer", Binarizer(threshold=0.4)),
@@ -124,12 +124,13 @@ def make_vectorized_persistence(np_img, label, reconstruction, attack_name = "No
     heat_pipeline = Pipeline(steps)
 
     img_pipeline = heat_pipeline.fit_transform(np_img).flatten()
-    print_end = f"{label}" if attack_name == "None" else f"attacked {label}"
+    print_end = f"{label} predicted as {pred}" if attack_name == "None" else f"attacked {label} predicted as {pred}"
     to_print = f"vectorized {reconstruction} persistence diagram {img_pipeline} for {print_end}"
     print(to_print)
     return img_pipeline
 
 def _count_vectorized_persistence():
+    '''Not in use. Used for small experiment'''
     vect_pers_df = pd.read_csv(VECT_PERS_OUTPUT_FILE, index_col=False)
     
     same_count = 0
