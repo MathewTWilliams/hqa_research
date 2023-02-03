@@ -10,6 +10,7 @@ import numpy as np
 
 
 def _read_log_files(hqa_model_name, num_layer, read_value):
+
     file_name = f"{hqa_model_name}_l{num_layer}.log"
     file_path = os.path.join(LOG_DIR, file_name)
     output = []
@@ -17,7 +18,7 @@ def _read_log_files(hqa_model_name, num_layer, read_value):
         for line in file.readlines():
             regex = f"\s{read_value}.*?,\s"
             value = re.search(regex, line).group().strip()[:-1].split("=")[-1]
-            output.append(float(value))
+            output.append(float(value) * (32 / 2**(int(num_layer) + 1)))
     
     return output
 
@@ -122,10 +123,9 @@ def main():
 
     datasets = os.listdir(IMG_DIR_PATH)
     for dataset in datasets:
-        if dataset == "MNIST_FFT":
+        if dataset not in ds_hqa_map.keys():
             continue
-        make_and_save_line_graph(dataset, "Lenet", "rate", ds_hqa_map[dataset])
-        
+        make_and_save_line_graph(dataset, "Lenet", "rate", ds_hqa_map[dataset])  
 
 if __name__ == "__main__": 
     main()

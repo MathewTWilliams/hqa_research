@@ -27,7 +27,7 @@ def get_loss_hqa(img, model, epoch, step, commit_threshold=0.6, log=None):
         nll = recon_loss
         elbo = -(nll + KL)  
         distortion_bpd = nll / dims / np.log(2)
-        rate_bpd = KL / dims / np.log(2)
+        rate_bpd = KL / dims / np.log(2) # bits per dimension?
         
         bits, max_bits, highest_prob = get_bit_usage(indices)
         bit_usage_frac = bits / max_bits

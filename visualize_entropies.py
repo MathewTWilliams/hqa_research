@@ -19,12 +19,24 @@ Made entropies for the following:
 
 - Need to make these 4 plots (2 visualizations) for each reconstruction type
 """
-
-def _get_entropies_from_df(entropies_df):
+COLOR_DICT = {
+    0 : "red", 
+    1 : "yellow",
+    2 : "green",
+    3 : "purple",
+    4 : "pink", 
+    5 : "magenta",
+    6 : "blue",
+    7 : "black",
+    8 : "orange",
+    9 :"gray"}
+    
+     
+def _get_entropies_from_df(entropies_df, label):
     '''For some reason, each list of entropies were saved as a string.
     This method takes in a dataframe and returns all the entropies in that dataframe to
     np.ndarrays. '''
-    return np.array(entropies_df["Persistence Entropies"].apply(
+    return np.array(entropies_df[entropies_df["Label"] == label]["Persistence Entropies"].apply(
         lambda x: [float(text.strip()) for text in x[1:-2].split(",")]).tolist())
 
 
@@ -41,36 +53,45 @@ def main():
         cor_reg_img_df = cor_reg_entropies_df[cor_reg_entropies_df["Input"] == "Image"]
         cor_reg_cnn_df = cor_reg_entropies_df[cor_reg_entropies_df["Input"] == "CNN Output"]
 
-        inc_att_img_entrs = _get_entropies_from_df(inc_att_img_df)
-        inc_att_cnn_entrs = _get_entropies_from_df(inc_att_cnn_df)
-        cor_reg_img_entrs = _get_entropies_from_df(cor_reg_img_df)
-        cor_reg_cnn_entrs = _get_entropies_from_df(cor_reg_cnn_df)
-
-
         fig, axes = plt.subplots(nrows=1, ncols=2, figsize = (20,10))
-        axes[0].scatter(inc_att_img_entrs[:,0], 
-                        inc_att_img_entrs[:,1],
-                        c = inc_att_img_df["Label"], 
-                        cmap="spring", linewidths=5)
+
+        for label in entropies_df["Label"].unique():
+
+            inc_att_img_entrs = _get_entropies_from_df(inc_att_img_df, label)
+            inc_att_cnn_entrs = _get_entropies_from_df(inc_att_cnn_df, label)
+            cor_reg_img_entrs = _get_entropies_from_df(cor_reg_img_df, label)
+            cor_reg_cnn_entrs = _get_entropies_from_df(cor_reg_cnn_df, label)
+
+            axes[0].scatter(inc_att_cnn_entrs[:,0], 
+                            inc_att_cnn_entrs[:,1],
+                            c = COLOR_DICT[label],
+                            label = label,
+                            linewidths=5)
+
+
+
+            axes[1].scatter(cor_reg_cnn_entrs[:,0],
+                            cor_reg_cnn_entrs[:,1],
+                            c = COLOR_DICT[label],
+                            label = label,
+                            linewidths=5)
+
         axes[0].set_xlabel("Input H0 entropes for Attack")
         axes[0].set_ylabel("Input H1 entropies for attack")
-        axes[0].set_xlim([0,4])
-        axes[0].set_ylim([0,4])
+        axes[0].set_xlim([-4,4])
+        axes[0].set_ylim([-4,4])
+        axes[0].set_title(f"Entropies of Misclassified Attacked CNN Ouput on {recon}")
+        axes[0].legend()
 
-
-
-        axes[1].scatter(cor_reg_img_entrs[:,0],
-                        cor_reg_img_entrs[:,1],
-                        c = cor_reg_img_df["Label"],
-                        cmap = "spring", linewidths=5)
         axes[1].set_xlabel("Input H0 entropes")
         axes[1].set_ylabel("Input H1 entropies")
-        axes[1].set_xlim([0,4])
-        axes[1].set_ylim([0,4])
+        axes[1].set_xlim([-4,4])
+        axes[1].set_ylim([-4,4])
+        axes[1].set_title(f"Entropies of Classified CNN Output on {recon}")
+        axes[1].legend()
+        fig.savefig(os.path.join(VISUAL_DIR, f"entrs_{recon}_cnn.png"))
+        plt.close("all")
 
-        fig.savefig(os.path.join(VISUAL_DIR, f"entrs_{recon}_imgs.png"))
-        fig.clf()
-        break 
 
         
 if __name__ == "__main__":
