@@ -9,6 +9,15 @@ import re
 import numpy as np
 
 
+
+RATE_DICT = {
+    "data_recon_0" : 0.25,
+    "data_recon_1" : 0.0625,
+    "data_recon_2" : 1.5625e-2,
+    "data_recon_3" : 3.90625e-3,
+    "data_recon_4" : 9.765625e-4,
+}
+
 def _read_log_files(hqa_model_name, num_layer, read_value):
 
     file_name = f"{hqa_model_name}_l{num_layer}.log"
@@ -18,10 +27,9 @@ def _read_log_files(hqa_model_name, num_layer, read_value):
         for line in file.readlines():
             regex = f"\s{read_value}.*?,\s"
             value = re.search(regex, line).group().strip()[:-1].split("=")[-1]
-            output.append(float(value) * (32 / 2**(int(num_layer) + 1)))
+            output.append(float(value))
     
     return output
-
 
 def _get_jpg_compression(dataset):
     jpg_sizes = []
@@ -41,12 +49,9 @@ def _get_jpg_compression(dataset):
             img_path = os.path.join(sub_dir_path, img_file)
             reg_sizes.append(os.path.getsize(img_path))
     
-
     return np.sum(np.divide(jpg_sizes, reg_sizes)) / len(reg_sizes)
 
    
-
-
 def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_name = None): 
 
     accuracy_df = pd.read_csv(ACCURACY_OUTPUT_FILE, index_col=False)
@@ -85,10 +90,12 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
                     second_y_values.append(_get_jpg_compression(dataset))
                 else: 
                     num_layer = cur_recon[-1]
-                    log_values = _read_log_files(hqa_model_name, num_layer, second_y_ax)
-                    second_y_values.append(log_values[-1])
+                    #log_values = _read_log_files(hqa_model_name, num_layer, second_y_ax)
+                    second_y_values.append(RATE_DICT[cur_recon])
         else:
             atk_acc_values.append(row_ds["Average Accuracy"])
+
+    print(second_y_values)
 
     fig, ax1 = plt.subplots()
     plt.figure(figsize=(20,10))
@@ -125,7 +132,8 @@ def main():
     for dataset in datasets:
         if dataset not in ds_hqa_map.keys():
             continue
-        make_and_save_line_graph(dataset, "Lenet", "rate", ds_hqa_map[dataset])  
+        make_and_save_line_graph(dataset, "Lenet", "rate", ds_hqa_map[dataset])
+        break
 
 if __name__ == "__main__": 
     main()
