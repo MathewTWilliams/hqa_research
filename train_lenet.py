@@ -5,6 +5,7 @@ from lenet import Lenet_5
 from utils import *
 import matplotlib.pyplot as plt
 from load_datasets import load_mnist, load_fashion_mnist, load_emnist
+import os
 
 def save_training_metrics(model, dl_test, train_losses, valid_losses, save_visual_name, model_name, ds_name): 
     '''
@@ -17,6 +18,10 @@ def save_training_metrics(model, dl_test, train_losses, valid_losses, save_visua
     - model_name: name of the model. To be input into accuracies csv.
     - ds_name: name of the dataset. To be input into accuracies csv.
     '''
+
+    if not os.path.isdir(MISC_VIS_DIR):
+        os.makedirs(MISC_VIS_DIR)
+
     plt.plot(range(1, len(train_losses) + 1), train_losses, label = "Training Loss")
     if len(valid_losses) > 0:
         plt.plot(range(1, len(valid_losses) + 1), valid_losses, label = "Validation Loss")
@@ -24,7 +29,7 @@ def save_training_metrics(model, dl_test, train_losses, valid_losses, save_visua
     plt.ylabel("Losses")
     plt.title("Training Loss values")
     plt.legend()
-    plt.savefig(os.path.join(VISUAL_DIR, save_visual_name))
+    plt.savefig(os.path.join(MISC_VIS_DIR, save_visual_name))
     plt.clf()
 
 def run_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, ds_name, num_classes,

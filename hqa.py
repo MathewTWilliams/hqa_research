@@ -16,11 +16,9 @@ class Encoder(nn.Module):
         super().__init__()
         blocks = [
             nn.Conv2d(in_feat_dim, hidden_dim // 2, kernel_size=3, stride=2, padding=1),
-            #Mish(),
-            GELU(),
+            Mish(),
             nn.Conv2d(hidden_dim // 2, hidden_dim, kernel_size=3, padding=1),
-            #Mish(),
-            GELU(),
+            Mish(),
         ]
 
         for _ in range(num_res_blocks):
@@ -51,8 +49,7 @@ class Decoder(nn.Module):
         blocks.extend([
                 Upsample(),
                 nn.Conv2d(hidden_dim, hidden_dim // 2, kernel_size=3, padding=1),
-                #Mish(),
-                GELU(),
+                Mish(),
                 nn.Conv2d(hidden_dim // 2, out_feat_dim, kernel_size=3, padding=1),
         ])
 

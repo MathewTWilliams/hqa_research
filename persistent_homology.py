@@ -11,13 +11,19 @@ import matplotlib.pyplot as plt
 import gudhi as gd
 from gudhi.representations import Entropy
 import numpy as np
-from utils import VISUAL_DIR, add_vectorized_persistence, VECT_PERS_OUTPUT_FILE, device, \
-add_persistence_entropy, PERS_ETP_OUTPUT_FILE, RECON_ROOT_NAMES
+from utils import BARCODES_DIR, add_vectorized_persistence, VECT_PERS_OUTPUT_FILE, device, \
+add_persistence_entropy, PERS_ETP_OUTPUT_FILE, RECON_ROOT_NAMES, MISC_VIS_DIR
 import os
 import pandas as pd
 from PIL import Image, ImageOps
 
 def _show_img_tens(tensor, fname):
+
+    dir_name = os.path.dirname(fname)
+    if not os.path.isdir(dir_name):
+        os.makedirs(dir_name)
+    
+
     data = tensor.detach().cpu().numpy()
     remmax = lambda x : x / x.max()
     remmin = lambda x : x - np.amin(x, axis = (0,1), keepdims = True)
@@ -53,7 +59,7 @@ def _get_CNN_stack_output(model, tensor_img):
 def barcode_model_CNN_Stack(model, tensor_img, label, avatar, attacked = False):
 
     dlmap = _get_CNN_stack_output(model, tensor_img)
-    _show_img_tens(dlmap, os.path.join(VISUAL_DIR, f"{label}_{avatar}_CNN.png"))
+    _show_img_tens(dlmap, os.path.join(MISC_VIS_DIR, f"{label}_{avatar}_CNN.png"))
     #scaler
     #scaler = MinMaxScaler()
     #fit and scale in one step
@@ -62,6 +68,9 @@ def barcode_model_CNN_Stack(model, tensor_img, label, avatar, attacked = False):
     make_persistence_barcode(dlmap.numpy(), label, new_avatar, attacked)
 
 def make_persistence_barcode(np_img, label, avatar = "", attacked = False):
+
+    if not os.path.isdir(BARCODES_DIR):
+        os.makedirs(BARCODES_DIR)
 
     cc = gd.CubicalComplex(dimensions = (np_img.shape[1], np_img.shape[2]), 
             top_dimensional_cells = 1 - np_img.flatten())
@@ -83,7 +92,7 @@ def make_persistence_barcode(np_img, label, avatar = "", attacked = False):
     fig = plt.gcf()
     file_end = "_a.png" if attacked else ".png"
     file_name = f"Pers{label}_{avatar}{file_end}"
-    fig.savefig(os.path.join(VISUAL_DIR, file_name))
+    fig.savefig(os.path.join(BARCODES_DIR, file_name))
     plt.close("all")
 
 def calc_entropy_model_CNN_stack(model, tensor_img, true_label, pred_label, avatar, attack_name = "None"):

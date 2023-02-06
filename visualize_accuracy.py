@@ -51,8 +51,8 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
 
     accuracy_df = pd.read_csv(ACCURACY_OUTPUT_FILE, index_col=False)
 
-    if not os.path.exists(VISUAL_DIR): 
-        os.mkdir(VISUAL_DIR)
+    if not os.path.isdir(ACCURACY_VIS_DIR): 
+        os.makedirs(ACCURACY_VIS_DIR)
 
     title = f"{model_name} Accuracy Comparison on {dataset}"
 
@@ -109,7 +109,7 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
         labels.append("Compression Rate")
 
     ax1.legend(all_plots, labels, loc = 0)
-    plt.savefig(os.path.join(VISUAL_DIR, f"{model_name}_{dataset}_accuracies.png"))
+    plt.savefig(os.path.join(ACCURACY_VIS_DIR, f"{model_name}_{dataset}_accuracies.png"))
     plt.clf()
 
 def main():

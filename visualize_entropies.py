@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from utils import *
 import os
 import numpy as np
+import seaborn as sns
+from scipy import stats
 
 """
 Made entropies for the following: 
@@ -18,6 +20,7 @@ Made entropies for the following:
 -- one for images and one for CNN output
 
 - Need to make these 4 plots (2 visualizations) for each reconstruction type
+
 """
 COLOR_DICT = {
     0 : "red", 
@@ -41,6 +44,11 @@ def _get_entropies_from_df(entropies_df, label):
 
 
 def main(): 
+
+    if not os.path.isdir(ENTR_VIS_DIR):
+        os.makedirs(ENTR_VIS_DIR)
+
+
     entropies_df = pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=None)
     for recon in RECON_ROOT_NAMES:
         recon_df = entropies_df[entropies_df["Reconstruction"] == recon]
@@ -62,34 +70,9 @@ def main():
             cor_reg_img_entrs = _get_entropies_from_df(cor_reg_img_df, label)
             cor_reg_cnn_entrs = _get_entropies_from_df(cor_reg_cnn_df, label)
 
-            axes[0].scatter(inc_att_cnn_entrs[:,0], 
-                            inc_att_cnn_entrs[:,1],
-                            c = COLOR_DICT[label],
-                            label = label,
-                            linewidths=5)
 
 
-
-            axes[1].scatter(cor_reg_cnn_entrs[:,0],
-                            cor_reg_cnn_entrs[:,1],
-                            c = COLOR_DICT[label],
-                            label = label,
-                            linewidths=5)
-
-        axes[0].set_xlabel("Input H0 entropes for Attack")
-        axes[0].set_ylabel("Input H1 entropies for attack")
-        axes[0].set_xlim([-4,4])
-        axes[0].set_ylim([-4,4])
-        axes[0].set_title(f"Entropies of Misclassified Attacked CNN Ouput on {recon}")
-        axes[0].legend()
-
-        axes[1].set_xlabel("Input H0 entropes")
-        axes[1].set_ylabel("Input H1 entropies")
-        axes[1].set_xlim([-4,4])
-        axes[1].set_ylim([-4,4])
-        axes[1].set_title(f"Entropies of Classified CNN Output on {recon}")
-        axes[1].legend()
-        fig.savefig(os.path.join(VISUAL_DIR, f"entrs_{recon}_cnn.png"))
+        fig.savefig(os.path.join(ENTR_VIS_DIR, f"entrs_{recon}_cnn.png"))
         plt.close("all")
 
 

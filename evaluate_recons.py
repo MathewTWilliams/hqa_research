@@ -103,25 +103,27 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
     #query model and evaluate results as normal
     model_output = query_model(lenet_model, dl_test, return_softmax = False)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
-    org_correct_idxs,_ = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root, save_result = True)
+    org_correct_idxs, org_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root, save_result = True)
 
     #make fgsm attack, query attacked model, evaluate the results
     fgsm_attack = torchattacks.FGSM(lenet_model)
     atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
-    _, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
+    atk_correct_idxs, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
 
     #Single example of persistent barcode with misclassified point and its attacked counterpart 
     #Show output of the model's CNN stack
     img, label = ds_test[atk_incorrect_idxs[0]]
     make_persistence_barcode(img.numpy(), label, root, False)
     barcode_model_CNN_Stack(lenet_model, img, label, root, False)
-    atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).cpu()
+    atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
     make_persistence_barcode(atk_img.numpy(), label, root, True)
     barcode_model_CNN_Stack(lenet_model, atk_img, label, root, True)
 
     #Calculate Entropies
     make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root, fgsm_attack)
+    make_persistence_metrics(lenet_model, ds_test, org_predictions, org_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
+    make_persistence_metrics(lenet_model, ds_test, org_predictions, atk_correct_idxs, model_name, ds_name, root, fgsm_attack)
     make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
     
     #TSNE related

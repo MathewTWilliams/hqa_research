@@ -40,7 +40,6 @@ IMG_TILED_FASH_MNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Tiled_Fashion_MNIST"
 IMG_TILED_EMNIST_DIR_PATH = os.path.join(IMG_DIR_PATH, "Tiled_EMNIST")
 IMG_SIG_DIR_PATH = os.path.join(IMG_DIR_PATH, "Sig")
 
-
 #Model relatd file paths
 MODELS_DIR = os.path.join(CWD, "models")
 LOG_DIR = os.path.join(MODELS_DIR, "log")
@@ -61,10 +60,16 @@ HQA_MNIST_FFT_MODEL_NAME = "hqa_mnist_model_FFT"
 HQA_MNIST_FFT_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_mnist_model_FFT.pt")
 IMG_MNIST_FFT_DIR_PATH = os.path.join(IMG_DIR_PATH, "MNIST_FFT")
 
+# Visualization Directories
+VISUAL_DIR = os.path.join(CWD, "Visuals")
+TSNE_DIR = os.path.join(VISUAL_DIR, "TSNE")
+BARCODES_DIR = os.path.join(VISUAL_DIR, "Barcodes")
+MISC_VIS_DIR = os.path.join(VISUAL_DIR, "Miscellaneous")
+ACCURACY_VIS_DIR = os.path.join(VISUAL_DIR, "Accuracy Plots")
+ENTR_VIS_DIR = os.path.join(VISUAL_DIR, "Entropies")
 
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
 ACCURACY_FILE_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Average Accuracy"] 
-VISUAL_DIR = os.path.join(CWD, "Visuals")
 MNIST_BATCH_SIZE = 512
 NUM_DATA_LOADER_WORKERS = 4
 RANDOM_SEED = 42

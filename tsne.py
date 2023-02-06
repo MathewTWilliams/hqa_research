@@ -15,6 +15,10 @@ def run_tsne(model_name, data, labels, ds_name, recon_name, num_classes, data_de
     tsne_components = 2
     pca_components = 5
 
+    if not os.path.isdir(TSNE_DIR):
+        os.makedirs(TSNE_DIR)
+
+
     data = StandardScaler().fit_transform(data)
     pca = PCA(n_components=pca_components, random_state=42)
     pca_res = pca.fit_transform(data)
@@ -35,5 +39,5 @@ def run_tsne(model_name, data, labels, ds_name, recon_name, num_classes, data_de
         file_name = f"TSNE_{model_name}_{points_shown}_{ds_name}_{ds_version}_{data_desc}_{attack}.png"
     plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0)
     plt.tight_layout()
-    plt.savefig(os.path.join(VISUAL_DIR, file_name))
+    plt.savefig(os.path.join(TSNE_DIR, file_name))
     plt.clf()
