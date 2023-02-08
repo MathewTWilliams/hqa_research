@@ -78,7 +78,7 @@ VECT_PERS_OUTPUT_FILE = os.path.join(CWD, "vectorized_persistences.csv")
 VECT_PERS_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstruction", "Attack", "Vectorized Persistence"]
 
 PERS_ETP_OUTPUT_FILE = os.path.join(CWD, "persistence_entropies.csv")
-PERS_EPT_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstruction", "Attack", "Input", "Persistence Entropies"]
+PERS_EPT_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstruction", "Attack", "Input", "H0", "H1"]
 
 
 MNIST_TRANSFORM = transforms.Compose([
@@ -175,8 +175,8 @@ def add_persistence_entropy(model_name, ds_name, label, pred, reconstruction, at
             "Prediction" : [pred],
             "Reconstruction" : [reconstruction],
             "Attack": [attack_name],
-            "Input" : [input_type],
-            "Persistence Entropies" : [persistence_entropies]}
+            "H0" : [persistence_entropies[0]],
+            "H1" : [persistence_entropies[1]]}
 
     add_row_to_csv(PERS_ETP_OUTPUT_FILE, PERS_EPT_OUTPUT_COLS, row_dict)
 

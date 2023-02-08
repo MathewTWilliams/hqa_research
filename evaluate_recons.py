@@ -60,7 +60,6 @@ def make_persistence_metrics(model, ds_test, predictions, ds_idxs, model_name, d
         except IndexError as e: 
             print("IndexError: Persistence Inteval values were all infinity")
 
-
         try: 
             org_entr = calc_entropy_model_CNN_stack(model, img, label, pred, root)
             atk_entr = calc_entropy_model_CNN_stack(model, atk_img, label, pred, root, attack.attack)
@@ -111,8 +110,8 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
     atk_correct_idxs, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
 
-    #Single example of persistent barcode with misclassified point and its attacked counterpart 
-    #Show output of the model's CNN stack
+    #Two examples of persistent barcode with misclassified point and its attacked counterpart.
+    # One on the image and one on the output the CNN layers
     img, label = ds_test[atk_incorrect_idxs[0]]
     make_persistence_barcode(img.numpy(), label, root, False)
     barcode_model_CNN_Stack(lenet_model, img, label, root, False)
@@ -121,13 +120,13 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
     barcode_model_CNN_Stack(lenet_model, atk_img, label, root, True)
 
     #Calculate Entropies
-    make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root, fgsm_attack)
+    #make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root, fgsm_attack)
     make_persistence_metrics(lenet_model, ds_test, org_predictions, org_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
-    make_persistence_metrics(lenet_model, ds_test, org_predictions, atk_correct_idxs, model_name, ds_name, root, fgsm_attack)
-    make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
+    make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_correct_idxs, model_name, ds_name, root, fgsm_attack)
+    #make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
     
-    #TSNE related
-    '''if root in ["data_original", "data_recon_4"]:
+    '''#TSNE related
+    if root in ["data_original", "data_recon_4"]:
         atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
         atk_mis_true_labels = [ds_test.targets[idx] for idx in atk_incorrect_idxs]
         run_tsne(model_name, atk_mis_outputs, atk_mis_true_labels, ds_name, root, num_classes, "model output", fgsm_attack.attack, misclassified=True)
@@ -184,23 +183,38 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
     # query model and evaluate the results    
     model_output = query_model(lenet_model, dl_test, return_softmax = False)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
-    _,_ = evaluate_dataset(model_name, ds_test._targets, org_predictions, ds_name, root_name, save_result=True)
+    org_correct_idxs, org_incorrect_idxs = evaluate_dataset(model_name, ds_test._targets, org_predictions, ds_name, root_name, save_result=True)
 
     # make fgsm attack, query attacked model, evaluate the results
     fgsm_attack = torchattacks.FGSM(lenet_model)
     atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
-    _, incorrect_idxs = evaluate_dataset(model_name, ds_test._targets, atk_predictions, ds_name, root_name, True, fgsm_attack.attack)
+    atk_correct_idxs, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test._targets, atk_predictions, ds_name, root_name, True, fgsm_attack.attack)
+
+    #Two examples of persistent barcode with misclassified point and its attacked counterpart.
+    # One on the image and one on the output the CNN layers
+    img, label = ds_test[atk_incorrect_idxs[0]]
+    make_persistence_barcode(img.numpy(), label, f"Tiled_{root_name}", False)
+    barcode_model_CNN_Stack(lenet_model, img, label, f"Tiled_{root_name}", False)
+    atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
+    make_persistence_barcode(atk_img.numpy(), label, f"Tiled_{root_name}", True)
+    barcode_model_CNN_Stack(lenet_model, atk_img, label, f"Tiled_{root_name}", True)
+
+    #Calculate Entropies
+    make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root_name, fgsm_attack)
+    make_persistence_metrics(lenet_model, ds_test, org_predictions, org_incorrect_idxs, model_name, ds_name, root_name, fgsm_attack)
+    make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_correct_idxs, model_name, ds_name, root_name, fgsm_attack)
+    make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root_name, fgsm_attack)
 
     '''if add_root is not None or root in ["data_original", "data_recon_3"]:
-        atk_mis_outputs = [atk_model_output[idx] for idx in incorrect_idxs]
-        mis_true_labels = [ds_test._targets[idx] for idx in incorrect_idxs]
+        atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
+        mis_true_labels = [ds_test._targets[idx] for idx in atk_incorrect_idxs]
         run_tsne(model_name, atk_mis_outputs, mis_true_labels, ds_name, root_name, num_classes, "model output", fgsm_attack.attack, misclassified=True)
 
         test_idxs, _ = train_test_split(
             range(len(ds_test)),
             stratify = ds_test._targets,
-            train_size = len(incorrect_idxs), 
+            train_size = len(atk_incorrect_idxs), 
             random_state = RANDOM_SEED
         )
 

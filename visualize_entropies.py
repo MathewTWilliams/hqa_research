@@ -7,41 +7,6 @@ from utils import *
 import os
 import numpy as np
 import seaborn as sns
-from scipy import stats
-
-"""
-Made entropies for the following: 
-- regular correct predictions (image and CNN output)
-- attacked incorrect predictions (image and CNN output)
-
-- 2 plots per visual
--- One for regular correct predictions and attacked incorrect predictions
-- 2 of these 2 plot visuals are made
--- one for images and one for CNN output
-
-- Need to make these 4 plots (2 visualizations) for each reconstruction type
-
-"""
-COLOR_DICT = {
-    0 : "red", 
-    1 : "yellow",
-    2 : "green",
-    3 : "purple",
-    4 : "pink", 
-    5 : "magenta",
-    6 : "blue",
-    7 : "black",
-    8 : "orange",
-    9 :"gray"}
-    
-     
-def _get_entropies_from_df(entropies_df, label):
-    '''For some reason, each list of entropies were saved as a string.
-    This method takes in a dataframe and returns all the entropies in that dataframe to
-    np.ndarrays. '''
-    return np.array(entropies_df[entropies_df["Label"] == label]["Persistence Entropies"].apply(
-        lambda x: [float(text.strip()) for text in x[1:-2].split(",")]).tolist())
-
 
 def main(): 
 
@@ -53,29 +18,92 @@ def main():
     for recon in RECON_ROOT_NAMES:
         recon_df = entropies_df[entropies_df["Reconstruction"] == recon]
         
-        incorrect_attack__df = recon_df[recon_df["Attack"] != "None"]
-        cor_reg_entropies_df = recon_df[recon_df["Attack"] == "None"]
+        recon_atk_df = recon_df[recon_df["Attack"] != "None"]
+        recon_org_df = recon_df[recon_df["Attack"] == "None"]
 
-        inc_att_img_df= incorrect_attack__df[incorrect_attack__df["Input"] == "Image"]
-        inc_att_cnn_df = incorrect_attack__df[incorrect_attack__df["Input"] == "CNN Output"]
-        cor_reg_img_df = cor_reg_entropies_df[cor_reg_entropies_df["Input"] == "Image"]
-        cor_reg_cnn_df = cor_reg_entropies_df[cor_reg_entropies_df["Input"] == "CNN Output"]
+        recon_atk_img_df = recon_atk_df[recon_atk_df["Input"] == "Image"]
+        recon_atk_cnn_df = recon_atk_df[recon_atk_df["Input"] == "CNN Output"]
+        recon_org_img_df = recon_org_df[recon_org_df["Input"] == "Image"]
+        recon_org_cnn_df = recon_org_df[recon_org_df["Input"] == "CNN Output"]
 
-        fig, axes = plt.subplots(nrows=1, ncols=2, figsize = (20,10))
+        cor_recon_org_img_df = recon_org_img_df.query("Label == Prediction")
+        inc_recon_org_img_df = recon_org_img_df.query("Label != Prediction")
+        cor_recon_org_cnn_df = recon_org_cnn_df.query("Label == Prediction")
+        inc_recon_org_cnn_df = recon_org_cnn_df.query("Label != Prediction")
 
-        for label in entropies_df["Label"].unique():
+        cor_recon_atk_img_df = recon_atk_img_df.query("Label == Prediction")
+        inc_recon_atk_img_df = recon_atk_img_df.query("Label != Prediction")
+        cor_recon_atk_cnn_df = recon_atk_cnn_df.query("Label == Prediction")
+        inc_recon_atk_cnn_df = recon_atk_cnn_df.query("Label != Prediction")
+    
 
-            inc_att_img_entrs = _get_entropies_from_df(inc_att_img_df, label)
-            inc_att_cnn_entrs = _get_entropies_from_df(inc_att_cnn_df, label)
-            cor_reg_img_entrs = _get_entropies_from_df(cor_reg_img_df, label)
-            cor_reg_cnn_entrs = _get_entropies_from_df(cor_reg_cnn_df, label)
+        fig, axs = plt.subplots(nrows = 2, ncols = 4)
+        fig.set_figwidth(20)
+        fig.set_figheight(15)
 
-
-
-        fig.savefig(os.path.join(ENTR_VIS_DIR, f"entrs_{recon}_cnn.png"))
+        sns.boxplot(x = "Label", y = "H0", data = cor_recon_org_img_df, ax = axs[0,0])
+        axs[0,0].set_title("Classified Normal Images")
+        axs[0,0].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H1", data = cor_recon_org_img_df, ax = axs[1,0])
+        axs[1,0].set_title("Classified Normal Images")
+        axs[1,0].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H0", data = cor_recon_atk_img_df, ax = axs[0,1])
+        axs[0,1].set_title("Classified Attacked Images")
+        axs[0,1].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H1", data = cor_recon_atk_img_df, ax = axs[1,1])
+        axs[1,1].set_title("Classified Attacked Images")
+        axs[1,1].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H0", data = inc_recon_org_img_df, ax = axs[0,2])
+        axs[0,2].set_title("Misclassified Normal Images")
+        axs[0,2].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H1", data = inc_recon_org_img_df, ax = axs[1,2])
+        axs[1,2].set_title("Misclassified Normal Images")
+        axs[1,2].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H0", data = inc_recon_atk_img_df, ax = axs[0,3])
+        axs[0,3].set_title("Misclassified Attacked Images")
+        axs[0,3].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H1", data = inc_recon_atk_img_df, ax = axs[1,3])
+        axs[1,3].set_title("Misclassified Attacked Images")
+        axs[1,3].set_ylim(0,3)
+        plt.tight_layout()
+        fig.savefig(os.path.join(ENTR_VIS_DIR, f"{recon}_entropies_imgs.png"))
         plt.close("all")
 
+        fig, axs = plt.subplots(nrows = 2, ncols=4)
+        fig.set_figwidth(20)
+        fig.set_figheight(15)
 
-        
+        sns.boxplot(x = "Label", y = "H0", data = cor_recon_org_cnn_df, ax = axs[0,0])
+        axs[0,0].set_title("Classified Normal CNN Output")
+        axs[0,0].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H1", data = cor_recon_org_cnn_df, ax = axs[1,0])
+        axs[1,0].set_title("Classified Normal CNN Output")
+        axs[1,0].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H0", data = cor_recon_atk_cnn_df, ax = axs[0,1])
+        axs[0,1].set_title("Classified Attacked CNN Output")
+        axs[0,1].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H1", data = cor_recon_atk_cnn_df, ax = axs[1,1])
+        axs[1,1].set_title("Classified Attacked CNN Output")
+        axs[1,1].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H0", data = inc_recon_org_cnn_df, ax = axs[0,2])
+        axs[0,2].set_title("Misclassified Normal CNN Output")
+        axs[0,2].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H1", data = inc_recon_org_cnn_df, ax = axs[1,2])
+        axs[1,2].set_title("Misclassified Normal CNN Output")
+        axs[1,2].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H0", data = inc_recon_atk_cnn_df, ax = axs[0,3])
+        axs[0,3].set_title("Misclassified Attacked CNN Output")
+        axs[0,3].set_ylim(0,3)
+        sns.boxplot(x = "Label", y = "H1", data = inc_recon_atk_cnn_df, ax = axs[1,3])
+        axs[1,3].set_title("Misclassified Attacked CNN Output")
+        axs[1,3].set_ylim(0,3)
+        plt.tight_layout()
+        fig.savefig(os.path.join(ENTR_VIS_DIR, f"{recon}_entropies_cnns.png"))
+        plt.close("all")
+    
+
+
+
+
 if __name__ == "__main__":
     main()
