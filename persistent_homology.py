@@ -120,6 +120,31 @@ def calculate_entropy(np_img, true_label, pred_label, avatar, attack_name = "Non
     print(f"Entropies of {avatar} persistence bars for{print_mid} {true_label} declared {pred_label}: {inst0_ent} and {inst1_ent}")
     return entr
 
+def calc_wass_dist_CNN_stack(model, org_tensor_img, atk_tensor_img, true_label, pred_label, avatar, attack_name): 
+    org_dlmap = _get_CNN_stack_output(model, org_tensor_img)
+    atk_dlmap = _get_CNN_stack_output(model, atk_tensor_img)
+    return calculate_wasserstein_distance(org_dlmap.numpy(), atk_dlmap.numpy(), true_label, pred_label, avatar, attack_name)
+
+
+def calculate_wasserstein_distance(org_np_img, atk_np_img, true_label, pred_label, avatar, attack_name = "FGSM"):
+
+    org_cc = gd.CubicalComplex(dimensions = (org_np_img[1], org_np_img[2]), 
+                            top_dimensional_cells = 1 - org_np_img.flatten())
+
+    org_diag = org_cc.persistence()
+    org_dgels = np.asarray([list(dl[1])for dl in org_diag])
+
+    atk_cc = gd.CubicalComplex(dimensions = (atk_np_img[1], atk_np_img[2]), 
+                            top_dimensional_cells = 1 - atk_np_img.flatten())
+
+    atk_diag = atk_cc.persistence()
+    atk_dgels = np.asarray([list(dl[1]) for dl in atk_diag])
+
+    wass_dist = gd.wasserstein.wasserstein_distance(org_dgels, atk_dgels, matching = False, order = 1.0, interal_p = 2)
+    print(f"Wasserstein distance of {avatar} persistence bars for {true_label} declared {pred_label}: {wass_dist}")
+
+    return wass_dist
+
 def make_vectorized_persistence(np_img, label, pred, reconstruction, attack_name = "None"):
     
     steps = [

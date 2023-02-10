@@ -80,6 +80,9 @@ VECT_PERS_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstruct
 PERS_ETP_OUTPUT_FILE = os.path.join(CWD, "persistence_entropies.csv")
 PERS_EPT_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstruction", "Attack", "Input", "H0", "H1"]
 
+WASS_DIST_OUTPUT_FILE = os.path.join(CWD, "wasserstein_distances.csv")
+WASS_DIST_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstruction", "Attack", "Input", "Wasserstein_Distance"]
+
 
 MNIST_TRANSFORM = transforms.Compose([
     transforms.Resize(32),
@@ -175,10 +178,25 @@ def add_persistence_entropy(model_name, ds_name, label, pred, reconstruction, at
             "Prediction" : [pred],
             "Reconstruction" : [reconstruction],
             "Attack": [attack_name],
+            "Input" : [input_type],
             "H0" : [persistence_entropies[0]],
             "H1" : [persistence_entropies[1]]}
 
     add_row_to_csv(PERS_ETP_OUTPUT_FILE, PERS_EPT_OUTPUT_COLS, row_dict)
+
+
+def add_wasserstein_distance(model_name, ds_name, label, pred, reconstruction, attack_name, input_type, wass_dist): 
+    row_dict = {"Model" : [model_name],
+            "Dataset" : [ds_name],
+            "Label" : [label],
+            "Prediction" : [pred],
+            "Reconstruction" : [reconstruction],
+            "Attack": [attack_name],
+            "Input" : [input_type],
+            "Wasserstein_Distance" : [wass_dist]
+    }
+
+    add_row_to_csv(WASS_DIST_OUTPUT_FILE, WASS_DIST_OUTPUT_COLS, row_dict)
 
 
 class MyDataset(Dataset):
