@@ -122,7 +122,8 @@ def load_mega_dataset(dataset_dir, transform = None, test_size = 0.2):
 
     dl_concat = DataLoader(ConcatDataset(training_subsets), batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=NUM_DATA_LOADER_WORKERS)
 
-    return dl_concat, dl_test_map
+    return dl_concat, dl_test_map    
+
 
 # Signal related
 '''def load_sig(classes, level = 0, include_snr = False, dim_size = 32, samples_per_class = 100):

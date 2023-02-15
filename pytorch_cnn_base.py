@@ -11,6 +11,7 @@ import torch.nn.functional as F
 import os
 import matplotlib.pyplot as plt
 from persistent_homology import make_persistence_barcode, make_vectorized_persistence
+from contextlib import nullcontext
 
 
 class PyTorch_CNN_Base(Module):
@@ -65,13 +66,13 @@ class PyTorch_CNN_Base(Module):
         x = self._linear_layers(x)
         return x
 
-    def run_epochs(self, n_epochs , validate = True):
+    def run_epochs(self, n_epochs, validate = True, attack = None):
         train_losses = []
         valid_losses = []
         min_valid_loss = np.inf
 
         for _ in (tqdm(range(n_epochs))):
-            train_loss = self._train()
+            train_loss = self._train(attack)
             train_losses.append(train_loss)
 
             if validate and self._valid_loader is not None:
@@ -86,15 +87,20 @@ class PyTorch_CNN_Base(Module):
         
         return train_losses, valid_losses
 
-    def _train(self):
+    def _train(self, attack):
         training_loss = 0
         self.train()
 
         for data, labels in self._train_loader:
+
+            if attack: 
+                adv_data = attack(data, labels)
+                data = torch.cat((data, adv_data), axis = 0)
+                labels = torch.cat([labels, labels], axis = 0 )
+
             data = data.to(device)
             labels = F.one_hot(labels, num_classes = self._num_classes).float()
             labels = labels.to(device)
-
 
             self._optimizer.zero_grad()
             output = self(data)
@@ -105,16 +111,25 @@ class PyTorch_CNN_Base(Module):
 
         return training_loss / len(self._train_loader)
 
-    def _validate(self):
+    def _validate(self, attack):
         valid_loss = 0
         self.eval()
 
         for data, labels in self._valid_loader:
+            if attack: 
+                adv_data = attack(data, labels)
+                data = torch.cat((data, adv_data), axis = 0)
+                labels = torch.cat([labels, labels], axis = 0)
+
             data = data.to(device)
             labels = F.one_hot(labels, num_classes = self._num_classes).float()
             labels = labels.to(device)
 
-            with torch.no_grad():
+            context_manager = torch.no_grad()
+            if attack: 
+                context_manager = nullcontext()
+
+            with context_manager:
                 output = self(data)
                 loss = self._loss_function(output, labels)
                 valid_loss += loss.item()

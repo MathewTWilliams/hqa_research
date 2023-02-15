@@ -6,6 +6,9 @@ from utils import *
 import matplotlib.pyplot as plt
 from load_datasets import load_mnist, load_fashion_mnist, load_emnist, load_mega_dataset
 import os
+from pytorch_cnn_base import query_model
+from evaluate_recons import evaluate_dataset
+from torchattacks import FGSM
 
 def save_training_metrics(train_losses, valid_losses, save_visual_name): 
     '''
@@ -32,8 +35,7 @@ def save_training_metrics(train_losses, valid_losses, save_visual_name):
     plt.savefig(os.path.join(MISC_VIS_DIR, save_visual_name))
     plt.clf()
 
-def run_lenet(dl_train, dl_valid, save_path, save_visual_name, num_classes,
-                 stop_early = False, validate = False):
+def run_lenet(dl_train, dl_valid, save_path, save_visual_name, num_classes, stop_early = False, validate = False, attack = None):
     """
     Args: 
     - dl_train: data loader instance with our training information.
@@ -47,41 +49,65 @@ def run_lenet(dl_train, dl_valid, save_path, save_visual_name, num_classes,
     - validate: should the model perform validation after each epoch
     """
     model = Lenet_5(dl_train, dl_valid, num_classes, save_path, stop_early)
-    train_losses, valid_losses = model.run_epochs(n_epochs= 50, validate=validate)
-    save_training_metrics(train_losses, valid_losses, save_visual_name,)
+    train_losses, valid_losses = model.run_epochs(n_epochs= 50, validate=validate, attack=attack)
+    save_training_metrics(train_losses, valid_losses, save_visual_name)
+    return model
+
+def test_recon_model(model, dl_test_map, model_name, ds_name, attack = "None"): 
+    model.eval()
+    for recon, dl_test in dl_test_map.items(): 
+        predictions = query_model(model, dl_test)
+        labels = np.asarray([dl_test.dataset.dataset.targets[i] for i in dl_test.dataset.indices])
+        _ = evaluate_dataset(model_name, labels, predictions, ds_name, recon, attack = attack)
 
 if __name__ == "__main__":
 
-    # For traditional LeNet with regular mnist
-    dl_train, _, _ = load_mnist(validate=False)
-    run_lenet(dl_train, 
-            None, 
+    # Regular MNIST
+    dl_train, dl_valid, _ = load_mnist(validate=True)
+    lenet_model = run_lenet(dl_train, 
+            dl_valid, 
             LENET_MNIST_PATH, 
             "Lenet_mnist.png", 
             "MNIST",
-            10)
+            10,
+            validate = True)
     
-    # For traditional LeNet with fashion mnist
-    dl_train, _, _ = load_fashion_mnist(validate=False)
-    run_lenet(dl_train,
-            None,
+    # Adversarial training on MNIST
+    fgsm_attack = FGSM(lenet_model)
+    _ = run_lenet(dl_train, 
+            None, 
+            LENET_ADV_MNIST_PATH, 
+            "Lenet_adv_mnist.png",
+            "Adv. MNIST", 
+            10, 
+            attack = fgsm_attack,
+            validate = True)
+    
+    del lenet_model
+
+    # Fashion MNIST
+    dl_train, dl_valid, _ = load_fashion_mnist(validate=True)
+    _ = run_lenet(dl_train,
+            dl_valid,
             LENET_FASH_MNIST_PATH,
             "Lenet_fash_mnist.png", 
             "Fashion_MNIST",
-             10)
+             10,
+             validate = True)
 
-    # For traditional LeNet with emnist
-    dl_train, _, _ = load_emnist(validate=False)
-    run_lenet(dl_train,
-            None,
+    # EMNIST
+    dl_train, dl_valid, _ = load_emnist(validate=True)
+    _ = run_lenet(dl_train,
+            dl_valid,
             LENET_EMNIST_PATH,
             "Lenet_emnist.png",
             "EMNIST", 
-            47)
+            47, 
+            validate = True)
 
-
+    # Lenet training on mega dataset or reconstructions
     dl_train, dl_test_map = load_mega_dataset(IMG_MNIST_DIR_PATH, MNIST_TRANSFORM)
-    run_lenet(
+    lenet_model = run_lenet(
         dl_train,
         None,
         LENET_MNIST_RECONS_PATH, 
@@ -89,4 +115,7 @@ if __name__ == "__main__":
         "MNIST Recons",
         10
     )
+
+    # get the accuracies from lenet trainied on reconstructions
+    test_recon_model(lenet_model, dl_test_map, "Lenet", "MNIST Recons")
 

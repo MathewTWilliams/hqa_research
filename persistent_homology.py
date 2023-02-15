@@ -9,6 +9,7 @@ from gtda.diagrams import Amplitude
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 import gudhi as gd
+from gudhi.wasserstein import wasserstein_distance
 from gudhi.representations import Entropy
 import numpy as np
 from utils import BARCODES_DIR, add_vectorized_persistence, VECT_PERS_OUTPUT_FILE, device, \
@@ -128,19 +129,20 @@ def calc_wass_dist_CNN_stack(model, org_tensor_img, atk_tensor_img, true_label, 
 
 def calculate_wasserstein_distance(org_np_img, atk_np_img, true_label, pred_label, avatar, attack_name = "FGSM"):
 
-    org_cc = gd.CubicalComplex(dimensions = (org_np_img[1], org_np_img[2]), 
+    org_cc = gd.CubicalComplex(dimensions = (org_np_img.shape[1], org_np_img.shape[2]), 
                             top_dimensional_cells = 1 - org_np_img.flatten())
 
     org_diag = org_cc.persistence()
     org_dgels = np.asarray([list(dl[1])for dl in org_diag])
 
-    atk_cc = gd.CubicalComplex(dimensions = (atk_np_img[1], atk_np_img[2]), 
+    atk_cc = gd.CubicalComplex(dimensions = (atk_np_img.shape[1], atk_np_img.shape[2]), 
                             top_dimensional_cells = 1 - atk_np_img.flatten())
 
     atk_diag = atk_cc.persistence()
     atk_dgels = np.asarray([list(dl[1]) for dl in atk_diag])
 
-    wass_dist = gd.wasserstein.wasserstein_distance(org_dgels, atk_dgels, matching = False, order = 1.0, interal_p = 2)
+    print("Caculating Distance Metric")
+    wass_dist = wasserstein_distance(org_dgels, atk_dgels, matching = False, order = 1.0, internal_p = 2)
     print(f"Wasserstein distance of {avatar} persistence bars for {true_label} declared {pred_label}: {wass_dist}")
 
     return wass_dist

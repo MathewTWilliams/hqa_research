@@ -14,7 +14,8 @@ from pytorch_cnn_base import query_model, outputs_to_predictions
 from tsne import run_tsne
 from sklearn.model_selection import train_test_split
 from persistent_homology import *
-import sys 
+from sklearn.metrics import ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 
 
 def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, save_result = True, attack = None):
@@ -28,6 +29,9 @@ def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, 
     - ret_correct_idxs : should the method return the indicies of the images predicted correctly?
     - save_result: should this evaluation be saved to the classification_accuracies.csv file?
     - attack: the name of the attack that has been applied to the model (if any). """
+
+
+
     correct_idxs = []
     incorrect_idxs = []
     
@@ -38,9 +42,17 @@ def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, 
             incorrect_idxs.append(i)
 
     if save_result:
+        if not os.path.isdir(CONF_MAT_VIS_DIR): 
+            os.mkdir(CONF_MAT_VIS_DIR)
+        conf_mat_disp = ConfusionMatrixDisplay.from_predictions(test_labels, predictions)
+        conf_mat_disp = conf_mat_disp.plot()
+        plt.title(f"{model_name} Confusion Matrix on {ds_name}: {recon_name}")
+        plt.savefig(os.path.join(CONF_MAT_VIS_DIR, f"{model_name}_{ds_name}_{recon_name}.png"))
+        plt.close("all")
+
         avg_accuracy = len(correct_idxs) / len(test_labels)
         attack_name = attack if attack != None else "None"
-        #add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
+        add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
 
     return correct_idxs, incorrect_idxs
 
@@ -51,7 +63,7 @@ def make_persistence_metrics(model, ds_test, predictions, ds_idxs, model_name, d
         pred = predictions[idx]
         atk_img = attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
 
-        try:
+        """try:
             org_entr = calculate_entropy(img.numpy(), label, pred, root)
             atk_entr = calculate_entropy(atk_img.numpy(), label, pred, root, attack.attack)
 
@@ -69,7 +81,7 @@ def make_persistence_metrics(model, ds_test, predictions, ds_idxs, model_name, d
             add_persistence_entropy(model_name, ds_name, label, pred, root, attack.attack, "CNN Output", atk_entr)
             
         except IndexError as e:
-            print("IndexError: Persistence Inteval values were all infinity")
+            print("IndexError: Persistence Inteval values were all infinity")"""
 
         '''try:     
             org_img_pipeline = make_vectorized_persistence(img.numpy(), label, root)
@@ -81,17 +93,18 @@ def make_persistence_metrics(model, ds_test, predictions, ds_idxs, model_name, d
         except ValueError as e: 
             print("ValueError: Division by zero error in Scalar step on regular image")'''
         
-        '''try: 
+        try: 
             img_wass_dist = calculate_wasserstein_distance(img.numpy(), atk_img.numpy(), label, pred, root, attack.attack)
             cnn_wass_dist = calc_wass_dist_CNN_stack(model, img, atk_img, label, pred, root, attack.attack)
 
             add_wasserstein_distance(model_name, ds_name, label, pred, root, attack.attack, "Image", img_wass_dist)
             add_wasserstein_distance(model_name, ds_name, label, pred, root, attack.attack, "CNN Output", cnn_wass_dist)
         except IndexError as e: 
-            print("IndexError: Persistence Interval values were all infinity")'''
+            print("IndexError: Persistence Interval values were all infinity")
         
+        break
 
-def eval_model(model_save_path, model_name, dataset, root, num_classes):
+def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsne = True, make_persistence = True):
     """
     Arguments: 
     - model_save_path: The file path where the model can be located. 
@@ -119,23 +132,25 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
     atk_correct_idxs, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
 
-    #Two examples of persistent barcode with misclassified point and its attacked counterpart.
-    # One on the image and one on the output the CNN layers
-    img, label = ds_test[atk_incorrect_idxs[0]]
-    make_persistence_barcode(img.numpy(), label, root, False)
-    barcode_model_CNN_Stack(lenet_model, img, label, root, False)
-    atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
-    make_persistence_barcode(atk_img.numpy(), label, root, True)
-    barcode_model_CNN_Stack(lenet_model, atk_img, label, root, True)
+    if make_persistence: 
+        #Two examples of persistent barcode with misclassified point and its attacked counterpart.
+        # One on the image and one on the output the CNN layers
+        img, label = ds_test[atk_incorrect_idxs[0]]
+        make_persistence_barcode(img.numpy(), label, root, False)
+        barcode_model_CNN_Stack(lenet_model, img, label, root, False)
+        atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
+        make_persistence_barcode(atk_img.numpy(), label, root, True)
+        barcode_model_CNN_Stack(lenet_model, atk_img, label, root, True)
 
-    #Calculate Entropies
-    #make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root, fgsm_attack)
-    make_persistence_metrics(lenet_model, ds_test, org_predictions, org_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
-    make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_correct_idxs, model_name, ds_name, root, fgsm_attack)
-    #make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
+        #Calculate Entropies
+        #make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root, fgsm_attack)
+        make_persistence_metrics(lenet_model, ds_test, org_predictions, org_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
+        return
+        make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_correct_idxs, model_name, ds_name, root, fgsm_attack)
+        #make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
     
     '''#TSNE related
-    if root in ["data_original", "data_recon_4"]:
+    if make_tsne and root in ["data_original", "data_recon_4"]:
         atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
         atk_mis_true_labels = [ds_test.targets[idx] for idx in atk_incorrect_idxs]
         run_tsne(model_name, atk_mis_outputs, atk_mis_true_labels, ds_name, root, num_classes, "model output", fgsm_attack.attack, misclassified=True)
@@ -160,8 +175,10 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
         correct_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in correct_idxs]
         run_tsne(model_name, correct_outputs, correct_targets, ds_name, root, num_classes, "model output")
         run_tsne(model_name, correct_images, correct_targets, ds_name, root, num_classes, "input image")'''
+    
+    pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=False).to_csv("persistence_entropies_copy.csv", index=False)
 
-def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, add_root = None):
+def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, add_root = None, make_tsne = True, make_persistence = True):
     """
     Arguments: 
     - model_save_path: The file path where the model is be located. 
@@ -200,22 +217,23 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
     atk_correct_idxs, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test._targets, atk_predictions, ds_name, root_name, True, fgsm_attack.attack)
 
-    #Two examples of persistent barcode with misclassified point and its attacked counterpart.
-    # One on the image and one on the output the CNN layers
-    img, label = ds_test[atk_incorrect_idxs[0]]
-    make_persistence_barcode(img.numpy(), label, f"Tiled_{root_name}", False)
-    barcode_model_CNN_Stack(lenet_model, img, label, f"Tiled_{root_name}", False)
-    atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
-    make_persistence_barcode(atk_img.numpy(), label, f"Tiled_{root_name}", True)
-    barcode_model_CNN_Stack(lenet_model, atk_img, label, f"Tiled_{root_name}", True)
+    if make_persistence:
+        #Two examples of persistent barcode with misclassified point and its attacked counterpart.
+        # One on the image and one on the output the CNN layers
+        img, label = ds_test[atk_incorrect_idxs[0]]
+        make_persistence_barcode(img.numpy(), label, f"Tiled_{root_name}", False)
+        barcode_model_CNN_Stack(lenet_model, img, label, f"Tiled_{root_name}", False)
+        atk_img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
+        make_persistence_barcode(atk_img.numpy(), label, f"Tiled_{root_name}", True)
+        barcode_model_CNN_Stack(lenet_model, atk_img, label, f"Tiled_{root_name}", True)
 
-    #Calculate Entropies
-    make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root_name, fgsm_attack)
-    make_persistence_metrics(lenet_model, ds_test, org_predictions, org_incorrect_idxs, model_name, ds_name, root_name, fgsm_attack)
-    make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_correct_idxs, model_name, ds_name, root_name, fgsm_attack)
-    make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root_name, fgsm_attack)
+        #Calculate Entropies
+        make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root_name, fgsm_attack)
+        make_persistence_metrics(lenet_model, ds_test, org_predictions, org_incorrect_idxs, model_name, ds_name, root_name, fgsm_attack)
+        make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_correct_idxs, model_name, ds_name, root_name, fgsm_attack)
+        make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root_name, fgsm_attack)
 
-    '''if add_root is not None or root in ["data_original", "data_recon_3"]:
+    '''if make_tsne and (add_root is not None or root in ["data_original", "data_recon_3"]):
         atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
         mis_true_labels = [ds_test._targets[idx] for idx in atk_incorrect_idxs]
         run_tsne(model_name, atk_mis_outputs, mis_true_labels, ds_name, root_name, num_classes, "model output", fgsm_attack.attack, misclassified=True)
@@ -240,13 +258,16 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
         correct_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in correct_idxs]
         run_tsne(model_name, correct_outputs, correct_targets, ds_name, root_name, num_classes, "model output")
         run_tsne(model_name, correct_images, correct_targets, ds_name, root_name, num_classes, "input image")'''
+    
+    pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=False).to_csv("persistence_entropies_copy.csv", index=False)
 
 def main():
 
     for root in RECON_ROOT_NAMES[:3]:
 
         eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10)
-        pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=False).to_csv("persistence_entropies_copy.csv", index=False)
+        break
+        #eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, False, False)
         #eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10)
         #eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47)
         #if root != "data_recon_4":
