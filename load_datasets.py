@@ -3,7 +3,7 @@
 
 import numpy as np
 from tqdm import tqdm
-import pytorch_lightning as pl
+#import pytorch_lightning as pl
 from matplotlib import pyplot as plt
 
 # Signal related
@@ -18,11 +18,12 @@ from torchsig.utils.visualize import IQVisualizer, SpectrogramVisualizer
 
 
 from torchvision.datasets import MNIST, FashionMNIST, EMNIST
-from torch.utils.data import DataLoader, Subset
-from utils import MNIST_TRANSFORM, EMNIST_TRANSFORM, MNIST_BATCH_SIZE, NUM_DATA_LOADER_WORKERS, \
-RANDOM_SEED, FFT_MNIST_TRANSFORM #Signal Related, SIG_TRANSFORM
+from torch.utils.data import DataLoader, Subset, ConcatDataset
+from utils import *
 from sklearn.model_selection import train_test_split
 from slice_torch_dataset import TiledDataset
+import os
+from numeric_image_folder import NumericImageFolder
 
 # File paths for downloading mnist related datasets
 MNIST_TRAIN_PATH = '/tmp/mnist'
@@ -104,6 +105,24 @@ def load_emnist(split = "balanced", validate = False, return_tiled = False, num_
     ds_test = EMNIST(EMNIST_TEST_PATH, split = split, download = True, train = False, transform = EMNIST_TRANSFORM)
     return _make_data_loaders(ds_train, ds_test, validate, return_tiled, num_tiles, tile_split)
 
+
+def load_mega_dataset(dataset_dir, transform = None, test_size = 0.2):
+    training_subsets = []
+    dl_test_map = {}
+
+    for recon in os.listdir(dataset_dir):
+        cur_dataset = NumericImageFolder(os.path.join(dataset_dir, recon), transform=transform)
+        training_idxs, test_idxs, _, _ = train_test_split(range(len(cur_dataset)), 
+                                                        cur_dataset.targets, 
+                                                        stratify = cur_dataset.targets, 
+                                                        test_size = test_size,
+                                                        random_state=RANDOM_SEED)
+        training_subsets.append(Subset(cur_dataset, training_idxs))
+        dl_test_map[recon] = DataLoader(Subset(cur_dataset, test_idxs), batch_size=MNIST_BATCH_SIZE, shuffle=False, num_workers=NUM_DATA_LOADER_WORKERS)
+
+    dl_concat = DataLoader(ConcatDataset(training_subsets), batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=NUM_DATA_LOADER_WORKERS)
+
+    return dl_concat, dl_test_map
 
 # Signal related
 '''def load_sig(classes, level = 0, include_snr = False, dim_size = 32, samples_per_class = 100):

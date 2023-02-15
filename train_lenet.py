@@ -4,10 +4,10 @@
 from lenet import Lenet_5
 from utils import *
 import matplotlib.pyplot as plt
-from load_datasets import load_mnist, load_fashion_mnist, load_emnist
+from load_datasets import load_mnist, load_fashion_mnist, load_emnist, load_mega_dataset
 import os
 
-def save_training_metrics(model, dl_test, train_losses, valid_losses, save_visual_name, model_name, ds_name): 
+def save_training_metrics(train_losses, valid_losses, save_visual_name): 
     '''
     Args: 
     - model: Lenet Model instance.
@@ -32,7 +32,7 @@ def save_training_metrics(model, dl_test, train_losses, valid_losses, save_visua
     plt.savefig(os.path.join(MISC_VIS_DIR, save_visual_name))
     plt.clf()
 
-def run_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, ds_name, num_classes,
+def run_lenet(dl_train, dl_valid, save_path, save_visual_name, num_classes,
                  stop_early = False, validate = False):
     """
     Args: 
@@ -48,37 +48,45 @@ def run_lenet(dl_train, dl_valid, dl_test, save_path, save_visual_name, ds_name,
     """
     model = Lenet_5(dl_train, dl_valid, num_classes, save_path, stop_early)
     train_losses, valid_losses = model.run_epochs(n_epochs= 50, validate=validate)
-    save_training_metrics(model, dl_test, train_losses, valid_losses, save_visual_name, "Lenet", ds_name)
+    save_training_metrics(train_losses, valid_losses, save_visual_name,)
 
 if __name__ == "__main__":
 
     # For traditional LeNet with regular mnist
-    dl_train, dl_valid, dl_test = load_mnist(validate=True)
+    dl_train, _, _ = load_mnist(validate=False)
     run_lenet(dl_train, 
-            dl_valid, 
-            dl_test,
+            None, 
             LENET_MNIST_PATH, 
             "Lenet_mnist.png", 
             "MNIST",
             10)
     
     # For traditional LeNet with fashion mnist
-    dl_train, dl_valid, dl_test = load_fashion_mnist(validate=True)
+    dl_train, _, _ = load_fashion_mnist(validate=False)
     run_lenet(dl_train,
-            dl_valid,
-            dl_test,
+            None,
             LENET_FASH_MNIST_PATH,
             "Lenet_fash_mnist.png", 
             "Fashion_MNIST",
              10)
 
     # For traditional LeNet with emnist
-    dl_train, dl_valid, dl_test = load_emnist(validate=True)
+    dl_train, _, _ = load_emnist(validate=False)
     run_lenet(dl_train,
-            dl_valid,
-            dl_test,
+            None,
             LENET_EMNIST_PATH,
             "Lenet_emnist.png",
             "EMNIST", 
             47)
+
+
+    dl_train, dl_test_map = load_mega_dataset(IMG_MNIST_DIR_PATH, MNIST_TRANSFORM)
+    run_lenet(
+        dl_train,
+        None,
+        LENET_MNIST_RECONS_PATH, 
+        "Lenet_mnist_recons.png",
+        "MNIST Recons",
+        10
+    )
 

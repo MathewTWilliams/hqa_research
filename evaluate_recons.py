@@ -14,6 +14,8 @@ from pytorch_cnn_base import query_model, outputs_to_predictions
 from tsne import run_tsne
 from sklearn.model_selection import train_test_split
 from persistent_homology import *
+import sys 
+
 
 def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, save_result = True, attack = None):
     """
@@ -79,14 +81,14 @@ def make_persistence_metrics(model, ds_test, predictions, ds_idxs, model_name, d
         except ValueError as e: 
             print("ValueError: Division by zero error in Scalar step on regular image")'''
         
-        try: 
+        '''try: 
             img_wass_dist = calculate_wasserstein_distance(img.numpy(), atk_img.numpy(), label, pred, root, attack.attack)
             cnn_wass_dist = calc_wass_dist_CNN_stack(model, img, atk_img, label, pred, root, attack.attack)
 
             add_wasserstein_distance(model_name, ds_name, label, pred, root, attack.attack, "Image", img_wass_dist)
             add_wasserstein_distance(model_name, ds_name, label, pred, root, attack.attack, "CNN Output", cnn_wass_dist)
         except IndexError as e: 
-            print("IndexError: Persistence Interval values were all infinity")
+            print("IndexError: Persistence Interval values were all infinity")'''
         
 
 def eval_model(model_save_path, model_name, dataset, root, num_classes):
@@ -106,7 +108,6 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
     lenet_model.eval()
     ds_test = NumericImageFolder(os.path.join(dataset, root), transform=IMG_FOLDER_TRANFORM)
     dl_test = DataLoader(ds_test, batch_size=MNIST_BATCH_SIZE, shuffle = False, num_workers = NUM_DATA_LOADER_WORKERS)
-    
     #query model and evaluate results as normal
     model_output = query_model(lenet_model, dl_test, return_softmax = False)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
@@ -128,10 +129,10 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes):
     barcode_model_CNN_Stack(lenet_model, atk_img, label, root, True)
 
     #Calculate Entropies
-    make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root, fgsm_attack)
+    #make_persistence_metrics(lenet_model, ds_test, org_predictions, org_correct_idxs, model_name, ds_name, root, fgsm_attack)
     make_persistence_metrics(lenet_model, ds_test, org_predictions, org_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
     make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_correct_idxs, model_name, ds_name, root, fgsm_attack)
-    make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
+    #make_persistence_metrics(lenet_model, ds_test, atk_predictions, atk_incorrect_idxs, model_name, ds_name, root, fgsm_attack)
     
     '''#TSNE related
     if root in ["data_original", "data_recon_4"]:
@@ -242,20 +243,20 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
 
 def main():
 
-    for root in RECON_ROOT_NAMES:
+    for root in RECON_ROOT_NAMES[:3]:
 
         eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10)
+        pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=False).to_csv("persistence_entropies_copy.csv", index=False)
         #eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10)
         #eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47)
-        
-        if root != "data_recon_4":
+        #if root != "data_recon_4":
             #eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_FFT_DIR_PATH, root, 10)
             
-            eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10)
+            #eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10)
             #eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10)
             #eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47)
 
-    eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3")
+   # eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3")
 
 if __name__ == "__main__": 
     main()

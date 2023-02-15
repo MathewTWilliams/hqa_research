@@ -54,6 +54,8 @@ HQA_SIG_SAVE_PATH = os.path.join(MODELS_DIR, "hqa_sig_model.pt")
 LENET_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_mnist.pt")
 LENET_FASH_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_fash_mnist.pt")
 LENET_EMNIST_PATH = os.path.join(MODELS_DIR, "lenet_emnist.pt")
+LENET_MNIST_RECONS_PATH = os.path.join(MODELS_DIR, "lenet_mnist_recons.pt")
+LENET_ADV_MNIST_PATH = os.path.join(MODELS_DIR, "lenet_adv_mnist.pt")
 
 #FFT Experiment
 HQA_MNIST_FFT_MODEL_NAME = "hqa_mnist_model_FFT"

@@ -121,19 +121,17 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
 
 def main():
 
-    ds_hqa_map = {"EMNIST" : HQA_EMNIST_MODEL_NAME,
-                "Fashion_MNIST" : HQA_FASH_MNIST_MODEL_NAME,
-                "MNIST" : HQA_MNIST_MODEL_NAME,
-                "Tiled_EMNIST" : HQA_TILED_EMNIST_MODEL_NAME,
-                "Tiled_Fashion_MNIST" : HQA_TILED_FASH_MNIST_MODEL_NAME,
-                "Tiled_MNIST" : HQA_TILED_MNIST_MODEL_NAME}
+    valid_hqa_datasets = ["EMNIST",
+                        "Fashion_MNIST", 
+                        "MNIST", 
+                        "Tiled_EMNIST", 
+                        "Tiled_Fashion_MNIST",
+                        "Tiled_MNIST"]
 
-    datasets = os.listdir(IMG_DIR_PATH)
-    for dataset in datasets:
-        if dataset not in ds_hqa_map.keys():
+    for dataset in os.listdir(IMG_DIR_PATH):
+        if dataset not in valid_hqa_datasets:
             continue
-        make_and_save_line_graph(dataset, "Lenet", "rate", ds_hqa_map[dataset])
-        break
+        make_and_save_line_graph(dataset, "Lenet", "rate", os.path.join(IMG_DIR_PATH, dataset))
 
 if __name__ == "__main__": 
     main()
