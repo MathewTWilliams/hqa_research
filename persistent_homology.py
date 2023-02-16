@@ -127,7 +127,7 @@ def calc_wass_dist_CNN_stack(model, org_tensor_img, atk_tensor_img, true_label, 
     return calculate_wasserstein_distance(org_dlmap.numpy(), atk_dlmap.numpy(), true_label, pred_label, avatar, attack_name)
 
 
-def calculate_wasserstein_distance(org_np_img, atk_np_img, true_label, pred_label, avatar, attack_name = "FGSM"):
+def calculate_wasserstein_distance(org_np_img, atk_np_img, true_label, org_pred, atk_pred,  avatar, attack_name = "FGSM"):
 
     org_cc = gd.CubicalComplex(dimensions = (org_np_img.shape[1], org_np_img.shape[2]), 
                             top_dimensional_cells = 1 - org_np_img.flatten())
@@ -143,7 +143,7 @@ def calculate_wasserstein_distance(org_np_img, atk_np_img, true_label, pred_labe
 
     print("Caculating Distance Metric")
     wass_dist = wasserstein_distance(org_dgels, atk_dgels, matching = False, order = 1.0, internal_p = 2)
-    print(f"Wasserstein distance of {avatar} persistence bars for {true_label} declared {pred_label}: {wass_dist}")
+    print(f"Wasserstein distance of {avatar} persistence bars for {true_label} normal declared {org_pred} and attack declared {atk_pred}: {wass_dist}")
 
     return wass_dist
 

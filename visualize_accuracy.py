@@ -131,7 +131,9 @@ def main():
     for dataset in os.listdir(IMG_DIR_PATH):
         if dataset not in valid_hqa_datasets:
             continue
-        make_and_save_line_graph(dataset, "Lenet", "rate", os.path.join(IMG_DIR_PATH, dataset))
+        make_and_save_line_graph(dataset, "Lenet", "rate", "hqa_mnist_model")
 
 if __name__ == "__main__": 
-    main()
+    #main()
+
+    print(_read_log_files("hqa_mnist_model", "0", "bit_usage"))
