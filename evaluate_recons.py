@@ -257,7 +257,7 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
 
 def main():
 
-    for root in RECON_ROOT_NAMES[6:]:
+    for root in RECON_ROOT_NAMES:
 
         eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, False, False) #make_tsne = true
         eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, False, False)
