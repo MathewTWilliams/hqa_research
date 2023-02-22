@@ -121,10 +121,10 @@ def calculate_entropy(np_img, true_label, pred_label, avatar, attack_name = "Non
     print(f"Entropies of {avatar} persistence bars for{print_mid} {true_label} declared {pred_label}: {inst0_ent} and {inst1_ent}")
     return entr
 
-def calc_wass_dist_CNN_stack(model, org_tensor_img, atk_tensor_img, true_label, pred_label, avatar, attack_name): 
+def calc_wass_dist_CNN_stack(model, org_tensor_img, atk_tensor_img, true_label, org_pred, atk_pred, avatar, attack_name): 
     org_dlmap = _get_CNN_stack_output(model, org_tensor_img)
     atk_dlmap = _get_CNN_stack_output(model, atk_tensor_img)
-    return calculate_wasserstein_distance(org_dlmap.numpy(), atk_dlmap.numpy(), true_label, pred_label, avatar, attack_name)
+    return calculate_wasserstein_distance(org_dlmap.numpy(), atk_dlmap.numpy(), true_label, org_pred, atk_pred, avatar, attack_name)
 
 
 def calculate_wasserstein_distance(org_np_img, atk_np_img, true_label, org_pred, atk_pred,  avatar, attack_name = "FGSM"):

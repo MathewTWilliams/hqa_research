@@ -103,7 +103,6 @@ def make_persistence_metrics(model, ds_test, org_predictions, atk_predictions, m
         except IndexError as e: 
             print("IndexError: Persistence Interval values were all infinity")
         
-        break
 
 def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsne = True, make_persistence = True):
     """
@@ -258,7 +257,7 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
 
 def main():
 
-    for root in RECON_ROOT_NAMES[:3]:
+    for root in RECON_ROOT_NAMES[6:]:
 
         eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, True, True)
         eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, False, False)
@@ -267,9 +266,9 @@ def main():
         if root != "data_recon_4":
             #eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_FFT_DIR_PATH, root, 10)
             
-            eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10, True, False)
-            eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10, True, False)
-            eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47, True, False)
+            eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10, make_tsne = True, make_persistence = False)
+            eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence = False)
+            eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47, make_tsne = True, make_persistence = False)
 
     eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3", True, False)
 

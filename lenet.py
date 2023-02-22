@@ -57,7 +57,6 @@ class Lenet_5(PyTorch_CNN_Base):
         linear_2 = Linear(84, out_features= self._num_classes)
         init.xavier_normal_(linear_2.weight)
         init.zeros_(linear_2.bias)
-
         linear_layers = Sequential(
             Flatten(),
             linear_1, 

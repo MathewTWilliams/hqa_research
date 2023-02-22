@@ -1,81 +1,111 @@
 Model,Dataset,Reconstruction,Attack,Average Accuracy
-Lenet,MNIST,data_original,None,0.9886
-Lenet,MNIST,data_original,FGSM,0.9661
-Lenet,Fashion_MNIST,data_original,None,0.8918
-Lenet,Fashion_MNIST,data_original,FGSM,0.5988
-Lenet,EMNIST,data_original,None,0.8679787234042553
-Lenet,EMNIST,data_original,FGSM,0.7253723404255319
-Lenet,Tiled_MNIST,data_original,None,0.9868
-Lenet,Tiled_MNIST,data_original,FGSM,0.956
-Lenet,Tiled_Fashion_MNIST,data_original,None,0.8653
-Lenet,Tiled_Fashion_MNIST,data_original,FGSM,0.5565
-Lenet,Tiled_EMNIST,data_original,None,0.8620212765957447
-Lenet,Tiled_EMNIST,data_original,FGSM,0.7124468085106384
-Lenet,MNIST,data_jpg,None,0.989
-Lenet,MNIST,data_jpg,FGSM,0.9638
-Lenet,Fashion_MNIST,data_jpg,None,0.8905
-Lenet,Fashion_MNIST,data_jpg,FGSM,0.5881
-Lenet,EMNIST,data_jpg,None,0.8679787234042553
-Lenet,EMNIST,data_jpg,FGSM,0.720531914893617
-Lenet,Tiled_MNIST,data_jpg,None,0.9864
-Lenet,Tiled_MNIST,data_jpg,FGSM,0.9533
-Lenet,Tiled_Fashion_MNIST,data_jpg,None,0.8654
-Lenet,Tiled_Fashion_MNIST,data_jpg,FGSM,0.5501
-Lenet,Tiled_EMNIST,data_jpg,None,0.8620744680851063
-Lenet,Tiled_EMNIST,data_jpg,FGSM,0.708404255319149
-Lenet,MNIST,data_recon_0,None,0.9881
-Lenet,MNIST,data_recon_0,FGSM,0.961
-Lenet,Fashion_MNIST,data_recon_0,None,0.8816
-Lenet,Fashion_MNIST,data_recon_0,FGSM,0.5997
-Lenet,EMNIST,data_recon_0,None,0.8685106382978723
-Lenet,EMNIST,data_recon_0,FGSM,0.7251595744680851
-Lenet,Tiled_MNIST,data_recon_0,None,0.9858
-Lenet,Tiled_MNIST,data_recon_0,FGSM,0.952
-Lenet,Tiled_Fashion_MNIST,data_recon_0,None,0.8517
-Lenet,Tiled_Fashion_MNIST,data_recon_0,FGSM,0.5585
-Lenet,Tiled_EMNIST,data_recon_0,None,0.8613829787234043
-Lenet,Tiled_EMNIST,data_recon_0,FGSM,0.7125531914893617
-Lenet,MNIST,data_recon_1,None,0.987
-Lenet,MNIST,data_recon_1,FGSM,0.9576
-Lenet,Fashion_MNIST,data_recon_1,None,0.8729
-Lenet,Fashion_MNIST,data_recon_1,FGSM,0.5918
-Lenet,EMNIST,data_recon_1,None,0.8660638297872341
-Lenet,EMNIST,data_recon_1,FGSM,0.7185106382978723
-Lenet,Tiled_MNIST,data_recon_1,None,0.9836
-Lenet,Tiled_MNIST,data_recon_1,FGSM,0.9474
-Lenet,Tiled_Fashion_MNIST,data_recon_1,None,0.8447
-Lenet,Tiled_Fashion_MNIST,data_recon_1,FGSM,0.554
-Lenet,Tiled_EMNIST,data_recon_1,None,0.8606914893617021
-Lenet,Tiled_EMNIST,data_recon_1,FGSM,0.7045744680851064
-Lenet,MNIST,data_recon_2,None,0.9749
-Lenet,MNIST,data_recon_2,FGSM,0.9384
-Lenet,Fashion_MNIST,data_recon_2,None,0.8359
-Lenet,Fashion_MNIST,data_recon_2,FGSM,0.5502
-Lenet,EMNIST,data_recon_2,None,0.8497872340425532
-Lenet,EMNIST,data_recon_2,FGSM,0.6929787234042554
-Lenet,Tiled_MNIST,data_recon_2,None,0.9753
-Lenet,Tiled_MNIST,data_recon_2,FGSM,0.9313
-Lenet,Tiled_Fashion_MNIST,data_recon_2,None,0.813
-Lenet,Tiled_Fashion_MNIST,data_recon_2,FGSM,0.5231
-Lenet,Tiled_EMNIST,data_recon_2,None,0.8431382978723404
-Lenet,Tiled_EMNIST,data_recon_2,FGSM,0.6782978723404255
-Lenet,MNIST,data_recon_3,None,0.9216
-Lenet,MNIST,data_recon_3,FGSM,0.8755
-Lenet,Fashion_MNIST,data_recon_3,None,0.7887
-Lenet,Fashion_MNIST,data_recon_3,FGSM,0.532
-Lenet,EMNIST,data_recon_3,None,0.7359042553191489
-Lenet,EMNIST,data_recon_3,FGSM,0.5773404255319149
-Lenet,Tiled_MNIST,data_recon_3,None,0.8903
-Lenet,Tiled_MNIST,data_recon_3,FGSM,0.8095
-Lenet,Tiled_Fashion_MNIST,data_recon_3,None,0.7368
-Lenet,Tiled_Fashion_MNIST,data_recon_3,FGSM,0.4841
-Lenet,Tiled_EMNIST,data_recon_3,None,0.6841489361702128
-Lenet,Tiled_EMNIST,data_recon_3,FGSM,0.4793617021276595
+Lenet,MNIST Recons,data_jpg,None,0.9865
+Lenet,MNIST Recons,data_jpg,FGSM,0.943
+Lenet,MNIST Recons,data_original,None,0.986
+Lenet,MNIST Recons,data_original,FGSM,0.946
+Lenet,MNIST Recons,data_recon_0,None,0.9855
+Lenet,MNIST Recons,data_recon_0,FGSM,0.9385
+Lenet,MNIST Recons,data_recon_1,None,0.984
+Lenet,MNIST Recons,data_recon_1,FGSM,0.9385
+Lenet,MNIST Recons,data_recon_2,None,0.9715
+Lenet,MNIST Recons,data_recon_2,FGSM,0.9105
+Lenet,MNIST Recons,data_recon_3,None,0.921
+Lenet,MNIST Recons,data_recon_3,FGSM,0.857
+Lenet,MNIST Recons,data_recon_4,None,0.814
+Lenet,MNIST Recons,data_recon_4,FGSM,0.726
+Lenet,MNIST,data_original,None,0.9903
+Lenet,MNIST,data_original,FGSM,0.9642
+Lenet (Adversarial),MNIST,data_original,None,0.9912
+Lenet (Adversarial),MNIST,data_original,FGSM,0.9733
+Lenet,Fashion_MNIST,data_original,None,0.8945
+Lenet,Fashion_MNIST,data_original,FGSM,0.5917
+Lenet,EMNIST,data_original,None,0.873563829787234
+Lenet,EMNIST,data_original,FGSM,0.7179255319148936
+Lenet,Tiled_MNIST,data_original,None,0.9871
+Lenet,Tiled_MNIST,data_original,FGSM,0.9536
+Lenet,Tiled_Fashion_MNIST,data_original,None,0.8759
+Lenet,Tiled_Fashion_MNIST,data_original,FGSM,0.5552
+Lenet,Tiled_EMNIST,data_original,None,0.8677127659574468
+Lenet,Tiled_EMNIST,data_original,FGSM,0.7051595744680851
+Lenet,MNIST,data_jpg,None,0.99
+Lenet,MNIST,data_jpg,FGSM,0.9621
+Lenet (Adversarial),MNIST,data_jpg,None,0.9911
+Lenet (Adversarial),MNIST,data_jpg,FGSM,0.9721
+Lenet,Fashion_MNIST,data_jpg,None,0.8932
+Lenet,Fashion_MNIST,data_jpg,FGSM,0.579
+Lenet,EMNIST,data_jpg,None,0.8731914893617021
+Lenet,EMNIST,data_jpg,FGSM,0.7113297872340425
+Lenet,Tiled_MNIST,data_jpg,None,0.987
+Lenet,Tiled_MNIST,data_jpg,FGSM,0.951
+Lenet,Tiled_Fashion_MNIST,data_jpg,None,0.8746
+Lenet,Tiled_Fashion_MNIST,data_jpg,FGSM,0.5461
+Lenet,Tiled_EMNIST,data_jpg,None,0.868031914893617
+Lenet,Tiled_EMNIST,data_jpg,FGSM,0.698404255319149
+Lenet,MNIST,data_recon_0,None,0.99
+Lenet,MNIST,data_recon_0,FGSM,0.9616
+Lenet (Adversarial),MNIST,data_recon_0,None,0.9903
+Lenet (Adversarial),MNIST,data_recon_0,FGSM,0.9704
+Lenet,Fashion_MNIST,data_recon_0,None,0.8793
+Lenet,Fashion_MNIST,data_recon_0,FGSM,0.5906
+Lenet,EMNIST,data_recon_0,None,0.8729787234042553
+Lenet,EMNIST,data_recon_0,FGSM,0.7153191489361702
+Lenet,Tiled_MNIST,data_recon_0,None,0.9861
+Lenet,Tiled_MNIST,data_recon_0,FGSM,0.9498
+Lenet,Tiled_Fashion_MNIST,data_recon_0,None,0.8639
+Lenet,Tiled_Fashion_MNIST,data_recon_0,FGSM,0.5562
+Lenet,Tiled_EMNIST,data_recon_0,None,0.8665425531914893
+Lenet,Tiled_EMNIST,data_recon_0,FGSM,0.7017021276595745
+Lenet,Tiled_MNIST,data_recon_0&3,None,0.9384
+Lenet,Tiled_MNIST,data_recon_0&3,FGSM,0.8734
+Lenet,MNIST,data_recon_1,None,0.9878
+Lenet,MNIST,data_recon_1,FGSM,0.9583
+Lenet (Adversarial),MNIST,data_recon_1,None,0.9896
+Lenet (Adversarial),MNIST,data_recon_1,FGSM,0.9685
+Lenet,Fashion_MNIST,data_recon_1,None,0.8718
+Lenet,Fashion_MNIST,data_recon_1,FGSM,0.5851
+Lenet,EMNIST,data_recon_1,None,0.870531914893617
+Lenet,EMNIST,data_recon_1,FGSM,0.7120744680851064
+Lenet,Tiled_MNIST,data_recon_1,None,0.9842
+Lenet,Tiled_MNIST,data_recon_1,FGSM,0.9436
+Lenet,Tiled_Fashion_MNIST,data_recon_1,None,0.8554
+Lenet,Tiled_Fashion_MNIST,data_recon_1,FGSM,0.5491
+Lenet,Tiled_EMNIST,data_recon_1,None,0.8640425531914894
+Lenet,Tiled_EMNIST,data_recon_1,FGSM,0.6963297872340426
+Lenet,MNIST,data_recon_2,None,0.9757
+Lenet,MNIST,data_recon_2,FGSM,0.9381
+Lenet (Adversarial),MNIST,data_recon_2,None,0.9782
+Lenet (Adversarial),MNIST,data_recon_2,FGSM,0.9494
+Lenet,Fashion_MNIST,data_recon_2,None,0.8271
+Lenet,Fashion_MNIST,data_recon_2,FGSM,0.5447
+Lenet,EMNIST,data_recon_2,None,0.8516489361702128
+Lenet,EMNIST,data_recon_2,FGSM,0.6813829787234043
+Lenet,Tiled_MNIST,data_recon_2,None,0.9745
+Lenet,Tiled_MNIST,data_recon_2,FGSM,0.9244
+Lenet,Tiled_Fashion_MNIST,data_recon_2,None,0.821
+Lenet,Tiled_Fashion_MNIST,data_recon_2,FGSM,0.5211
+Lenet,Tiled_EMNIST,data_recon_2,None,0.8448936170212766
+Lenet,Tiled_EMNIST,data_recon_2,FGSM,0.6645744680851063
+Lenet,MNIST,data_recon_3,None,0.921
+Lenet,MNIST,data_recon_3,FGSM,0.8752
+Lenet (Adversarial),MNIST,data_recon_3,None,0.9227
+Lenet (Adversarial),MNIST,data_recon_3,FGSM,0.8859
+Lenet,Fashion_MNIST,data_recon_3,None,0.7881
+Lenet,Fashion_MNIST,data_recon_3,FGSM,0.5219
+Lenet,EMNIST,data_recon_3,None,0.7367553191489362
+Lenet,EMNIST,data_recon_3,FGSM,0.5650531914893617
+Lenet,Tiled_MNIST,data_recon_3,None,0.8834
+Lenet,Tiled_MNIST,data_recon_3,FGSM,0.8008
+Lenet,Tiled_Fashion_MNIST,data_recon_3,None,0.7499
+Lenet,Tiled_Fashion_MNIST,data_recon_3,FGSM,0.4704
+Lenet,Tiled_EMNIST,data_recon_3,None,0.6797340425531915
+Lenet,Tiled_EMNIST,data_recon_3,FGSM,0.4575531914893617
 Lenet,MNIST,data_recon_4,None,0.799
-Lenet,MNIST,data_recon_4,FGSM,0.7797
-Lenet,Fashion_MNIST,data_recon_4,None,0.6597
-Lenet,Fashion_MNIST,data_recon_4,FGSM,0.4488
-Lenet,EMNIST,data_recon_4,None,0.3226595744680851
-Lenet,EMNIST,data_recon_4,FGSM,0.2348936170212766
-Lenet,Tiled_MNIST,data_recon_0&3,None,0.9481
-Lenet,Tiled_MNIST,data_recon_0&3,FGSM,0.8838
+Lenet,MNIST,data_recon_4,FGSM,0.7854
+Lenet (Adversarial),MNIST,data_recon_4,None,0.8004
+Lenet (Adversarial),MNIST,data_recon_4,FGSM,0.7844
+Lenet,Fashion_MNIST,data_recon_4,None,0.6595
+Lenet,Fashion_MNIST,data_recon_4,FGSM,0.4269
+Lenet,EMNIST,data_recon_4,None,0.3220744680851063
+Lenet,EMNIST,data_recon_4,FGSM,0.2215425531914893
+Lenet,Tiled_MNIST,data_recon_0&3,None,0.9384
+Lenet,Tiled_MNIST,data_recon_0&3,FGSM,0.8734

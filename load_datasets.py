@@ -36,16 +36,16 @@ SIG_TRAIN_PATH = '/tmp/sig'
 SIG_TEST_PATH = '/tmp/sig_test_'
 
 
-def _make_train_valid_split(ds_train, len_ds_test):
+def _make_train_valid_split(dataset, len_ds_test):
     train_idxs, valid_idxs, _, _ = train_test_split(
-            range(len(ds_train)),
-            ds_train.targets,
-            stratify=ds_train.targets,
-            test_size= len_ds_test / len(ds_train), 
-            random_state=RANDOM_SEED
+            range(len(dataset)),
+            dataset.targets,
+            stratify = dataset.targets,
+            test_size = len_ds_test / len(dataset), 
+            random_state = RANDOM_SEED
         )
-    ds_train = Subset(ds_train, train_idxs)
-    ds_valid = Subset(ds_train, valid_idxs)
+    ds_train = Subset(dataset, train_idxs)
+    ds_valid = Subset(dataset, valid_idxs)
     
     return ds_train, ds_valid
 
@@ -121,7 +121,6 @@ def load_mega_dataset(dataset_dir, transform = None, test_size = 0.2):
         dl_test_map[recon] = DataLoader(Subset(cur_dataset, test_idxs), batch_size=MNIST_BATCH_SIZE, shuffle=False, num_workers=NUM_DATA_LOADER_WORKERS)
 
     dl_concat = DataLoader(ConcatDataset(training_subsets), batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=NUM_DATA_LOADER_WORKERS)
-
     return dl_concat, dl_test_map    
 
 

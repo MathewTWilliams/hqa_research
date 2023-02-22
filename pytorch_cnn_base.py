@@ -76,7 +76,7 @@ class PyTorch_CNN_Base(Module):
             train_losses.append(train_loss)
 
             if validate and self._valid_loader is not None:
-                valid_loss = self._validate()
+                valid_loss = self._validate(attack)
                 valid_losses.append(valid_loss)
 
                 if self._stop_early and valid_loss > min_valid_loss:
@@ -92,13 +92,13 @@ class PyTorch_CNN_Base(Module):
         self.train()
 
         for data, labels in self._train_loader:
+            data = data.to(device)
 
             if attack: 
                 adv_data = attack(data, labels)
-                data = torch.cat((data, adv_data), axis = 0)
+                data = torch.cat((data.to(device), adv_data), axis = 0)
                 labels = torch.cat([labels, labels], axis = 0 )
 
-            data = data.to(device)
             labels = F.one_hot(labels, num_classes = self._num_classes).float()
             labels = labels.to(device)
 
@@ -116,12 +116,14 @@ class PyTorch_CNN_Base(Module):
         self.eval()
 
         for data, labels in self._valid_loader:
+            data = data.to(device)
+
             if attack: 
                 adv_data = attack(data, labels)
+                data = data.to(device)
                 data = torch.cat((data, adv_data), axis = 0)
                 labels = torch.cat([labels, labels], axis = 0)
 
-            data = data.to(device)
             labels = F.one_hot(labels, num_classes = self._num_classes).float()
             labels = labels.to(device)
 
