@@ -1,8 +1,9 @@
 # Custom
 /data*
 /models*
-/Pickle Files*
 /To_Implement*
+/.RData
+/.Rhistory
 
 
 

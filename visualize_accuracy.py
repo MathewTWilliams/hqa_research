@@ -79,6 +79,10 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
         cur_recon = row_ds["Reconstruction"]
         cur_attack = row_ds["Attack"]
 
+        # ignore tiled data sets that combine different hqa layers
+        if cur_recon.find("&") != -1:
+            continue
+
         if cur_attack == "None":
             reg_acc_values.append(row_ds["Average Accuracy"])
             x_ticks.append(cur_recon)
@@ -88,14 +92,13 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
                     second_y_values.append(1)
                 elif cur_recon == "data_jpg":
                     second_y_values.append(_get_jpg_compression(dataset))
-                else: 
-                    num_layer = cur_recon[-1]
+                else:  
+                    #num_layer = cur_recon[-1]
                     #log_values = _read_log_files(hqa_model_name, num_layer, second_y_ax)
                     second_y_values.append(RATE_DICT[cur_recon])
         else:
             atk_acc_values.append(row_ds["Average Accuracy"])
 
-    print(second_y_values)
 
     fig, ax1 = plt.subplots()
     plt.figure(figsize=(20,10))
@@ -134,6 +137,4 @@ def main():
         make_and_save_line_graph(dataset, "Lenet", "rate", "hqa_mnist_model")
 
 if __name__ == "__main__": 
-    #main()
-
-    print(_read_log_files("hqa_mnist_model", "0", "bit_usage"))
+    main()
