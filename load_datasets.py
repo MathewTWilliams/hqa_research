@@ -5,6 +5,7 @@ import numpy as np
 from tqdm import tqdm
 #import pytorch_lightning as pl
 from matplotlib import pyplot as plt
+from collections import OrderedDict
 
 # Signal related
 '''
@@ -108,7 +109,7 @@ def load_emnist(split = "balanced", validate = False, return_tiled = False, num_
 
 def load_mega_dataset(dataset_dir, transform = None, test_size = 0.2):
     training_subsets = []
-    dl_test_map = {}
+    dl_test_map = OrderedDict()
 
     for recon in os.listdir(dataset_dir):
         cur_dataset = NumericImageFolder(os.path.join(dataset_dir, recon), transform=transform)
@@ -121,6 +122,7 @@ def load_mega_dataset(dataset_dir, transform = None, test_size = 0.2):
         dl_test_map[recon] = DataLoader(Subset(cur_dataset, test_idxs), batch_size=MNIST_BATCH_SIZE, shuffle=False, num_workers=NUM_DATA_LOADER_WORKERS)
 
     dl_concat = DataLoader(ConcatDataset(training_subsets), batch_size=MNIST_BATCH_SIZE, shuffle=True, num_workers=NUM_DATA_LOADER_WORKERS)
+    dl_test_map.move_to_end("data_original", last = False) # done for visualization purposes
     return dl_concat, dl_test_map    
 
 

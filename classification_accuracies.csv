@@ -1,8 +1,8 @@
 Model,Dataset,Reconstruction,Attack,Average Accuracy
-Lenet,MNIST Recons,data_jpg,None,0.9865
-Lenet,MNIST Recons,data_jpg,FGSM,0.943
 Lenet,MNIST Recons,data_original,None,0.986
 Lenet,MNIST Recons,data_original,FGSM,0.946
+Lenet,MNIST Recons,data_jpg,None,0.9865
+Lenet,MNIST Recons,data_jpg,FGSM,0.943
 Lenet,MNIST Recons,data_recon_0,None,0.9855
 Lenet,MNIST Recons,data_recon_0,FGSM,0.9385
 Lenet,MNIST Recons,data_recon_1,None,0.984

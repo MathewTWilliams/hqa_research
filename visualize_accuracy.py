@@ -91,7 +91,10 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
                 if cur_recon == "data_original":
                     second_y_values.append(1)
                 elif cur_recon == "data_jpg":
-                    second_y_values.append(_get_jpg_compression(dataset))
+                    if dataset == "MNIST Recons":
+                        second_y_values.append(_get_jpg_compression("MNIST"))
+                    else: 
+                        second_y_values.append(_get_jpg_compression(dataset))
                 else:  
                     #num_layer = cur_recon[-1]
                     #log_values = _read_log_files(hqa_model_name, num_layer, second_y_ax)
@@ -124,17 +127,18 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
 
 def main():
 
-    valid_hqa_datasets = ["EMNIST",
-                        "Fashion_MNIST", 
-                        "MNIST", 
-                        "Tiled_EMNIST", 
-                        "Tiled_Fashion_MNIST",
-                        "Tiled_MNIST"]
+    valid_hqa_datasets = [#"EMNIST",
+                        #"Fashion_MNIST", 
+                        #"MNIST", 
+                        #"Tiled_EMNIST", 
+                        #"Tiled_Fashion_MNIST",
+                        #"Tiled_MNIST",
+                        "MNIST Recons"]
 
-    for dataset in os.listdir(IMG_DIR_PATH):
-        if dataset not in valid_hqa_datasets:
-            continue
-        make_and_save_line_graph(dataset, "Lenet", "rate", "hqa_mnist_model")
+    for dataset in valid_hqa_datasets:
+        make_and_save_line_graph(dataset, "Lenet", "rate")
+        if dataset == "MNIST":
+            make_and_save_line_graph(dataset, "Lenet (Adversarial)", "rate")
 
 if __name__ == "__main__": 
     main()
