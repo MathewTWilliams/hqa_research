@@ -70,6 +70,7 @@ MISC_VIS_DIR = os.path.join(VISUAL_DIR, "Miscellaneous")
 ACCURACY_VIS_DIR = os.path.join(VISUAL_DIR, "Accuracy Plots")
 ENTR_VIS_DIR = os.path.join(VISUAL_DIR, "Entropies")
 CONF_MAT_VIS_DIR = os.path.join(VISUAL_DIR, "Confusion Matrices")
+WASS_DIST_VIS_DIR = os.path.join(VISUAL_DIR, "Wasserstein")
 
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
 ACCURACY_FILE_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Average Accuracy"] 

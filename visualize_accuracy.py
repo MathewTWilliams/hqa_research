@@ -127,12 +127,12 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
 
 def main():
 
-    valid_hqa_datasets = [#"EMNIST",
-                        #"Fashion_MNIST", 
-                        #"MNIST", 
-                        #"Tiled_EMNIST", 
-                        #"Tiled_Fashion_MNIST",
-                        #"Tiled_MNIST",
+    valid_hqa_datasets = ["EMNIST",
+                        "Fashion_MNIST", 
+                        "MNIST", 
+                        "Tiled_EMNIST", 
+                        "Tiled_Fashion_MNIST",
+                        "Tiled_MNIST",
                         "MNIST Recons"]
 
     for dataset in valid_hqa_datasets:
