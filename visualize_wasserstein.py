@@ -21,78 +21,42 @@ def main():
             cur_wasserstein_df = wasserstein_df[(wasserstein_df["Reconstruction"] == recon) &
                                                 (wasserstein_df["Label"] == label)]
             
+            wass_img_df = cur_wasserstein_df[cur_wasserstein_df["Input"] == "Image"]
+            wass_cnn_df = cur_wasserstein_df[cur_wasserstein_df["Input"] == "CNN Output"]
 
-            wass_reg_img_df = cur_wasserstein_df[cur_wasserstein_df["Input"] == "Image"]
-            wass_reg_cnn_df = cur_wasserstein_df[cur_wasserstein_df["Input"] == "CNN Output"]
-            wass_atk_img_df = cur_wasserstein_df[cur_wasserstein_df["Input"] == "Image"]
-            wass_atk_cnn_df = cur_wasserstein_df[cur_wasserstein_df["Input"] == "CNN Output"]
+            cor_wass_img_df = wass_img_df[wass_img_df["Prediction"] == label]
+            inc_wass_img_df = wass_img_df[wass_img_df["Prediction"] != label]
+            cor_wass_cnn_df = wass_cnn_df[wass_cnn_df["Prediction"] == label]
+            inc_wass_cnn_df = wass_cnn_df[wass_cnn_df["Prediction"] != label]
 
-            cor_wass_reg_img_df = wass_reg_img_df[wass_reg_img_df["Prediction"] == label]
-            cor_wass_reg_cnn_df = wass_reg_cnn_df[wass_reg_cnn_df["Prediction"] == label]
-            inc_wass_reg_img_df = wass_reg_img_df[wass_reg_img_df["Prediction"] != label]
-            inc_wass_reg_cnn_df = wass_reg_cnn_df[wass_reg_cnn_df["Prediction"] != label]
+            fig, axes = plt.subplots(2,2)
+            fig.set_figwidth(15)
+            fig.set_figheight(15)
+            
+            sns.histplot(ax=axes[0,0], data = cor_wass_img_df, x = "Wasserstein_Distance", kde=True, bins=50)
+            axes[0,0].set_title(f"Wasserstein distances of classified {label} images produced by {recon}")
+            axes[0,0].set_xlim(0,2.5)
+            axes[0,0].set_ylim(0,100)
 
-            cor_wass_atk_img_df = wass_atk_img_df[wass_atk_img_df["Prediction"] == label]
-            cor_wass_atk_cnn_df = wass_atk_cnn_df[wass_atk_cnn_df["Prediction"] == label]
-            inc_wass_atk_img_df = wass_atk_img_df[wass_atk_img_df["Prediction"] != label]
-            inc_wass_atk_cnn_df = wass_atk_cnn_df[wass_atk_cnn_df["Prediction"] != label]
+            sns.histplot(ax=axes[0,1], data = cor_wass_cnn_df, x = "Wasserstein_Distance", kde=True, bins=50)
+            axes[0,1].set_title(f"Wasserstein distance of classified {label} CNN Outputs produced by {recon}")
+            axes[0,1].set_xlim(0,2.5)
+            axes[0,1].set_ylim(0,100)
 
+            sns.histplot(ax=axes[1,0], data = inc_wass_img_df, x = "Wasserstein_Distance", kde=True, bins=50)
+            axes[1,0].set_title(f"Wasserstein distance of misclassified {label} images produced by {recon}")
+            axes[1,0].set_xlim(0,2.5)
+            axes[1,0].set_ylim(0,40)
 
-            _ = sns.histplot(data = cor_wass_reg_img_df,
-                                 x = "Wasserstein_Distance"
-            )
-            plt.title(f"Wasserstein distance of classified {label} images produced by {recon}")
-            plt.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_cor_reg_img_{label}.png"))
+            sns.histplot(ax=axes[1,1], data = inc_wass_cnn_df, x = "Wasserstein_Distance", kde=True, bins=50)
+            axes[1,1].set_title(f"Wasserstein distance of misclassified {label} CNN Outputs produced by {recon}")
+            axes[1,1].set_xlim(0,2.5)
+            axes[1,1].set_ylim(0,40)
+            
+            fig.tight_layout()
+            fig.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_{label}.png"))
             plt.close("all")
 
-            _ = sns.histplot(data = cor_wass_reg_cnn_df,
-                                 x = "Wasserstein_Distance"
-            )
-            plt.title(f"Wasserstein distance of classified {label} CNN Outputs produced by {recon}")
-            plt.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_cor_reg_cnn_{label}.png"))
-            plt.close("all")
-
-            _ = sns.histplot(data = inc_wass_reg_img_df,
-                                 x = "Wasserstein_Distance"
-            )
-            plt.title(f"Wasserstein distance of misclassified {label} images produced by {recon}")
-            plt.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_inc_reg_img_{label}.png"))
-            plt.close("all")
-
-            _ = sns.histplot(data = inc_wass_reg_cnn_df,
-                                 x = "Wasserstein_Distance"
-            )
-            plt.title(f"Wasserstein distance of misclassified {label} CNN Outputs produced by {recon}")
-            plt.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_inc_reg_cnn_{label}.png"))
-            plt.close("all")
-
-            _ = sns.histplot(data = cor_wass_atk_img_df,
-                                 x = "Wasserstein_Distance"
-            )
-            plt.title(f"Wasserstein distance of attacked classified {label} images produced by {recon}")
-            plt.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_cor_atk_img_{label}.png"))
-            plt.close("all")
-
-            _ = sns.histplot(data = cor_wass_atk_cnn_df,
-                                 x = "Wasserstein_Distance"
-            )
-            plt.title(f"Wasserstein distance of attacked classified {label} CNN Outputs produced by {recon}")
-            plt.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_cor_atk_cnn_{label}.png"))
-            plt.close("all")
-
-            _ = sns.histplot(data = inc_wass_atk_img_df,
-                                 x = "Wasserstein_Distance"
-            )
-            plt.title(f"Wasserstein distance of attacked misclassified {label} images produced by {recon}")
-            plt.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_inc_atk_img_{label}.png"))
-            plt.close("all")
-
-            _ = sns.histplot(data = inc_wass_atk_cnn_df,
-                                 x = "Wasserstein_Distance"
-            )
-            plt.title(f"Wasserstein distance of attacked misclassified {label} CNN Outputs produced by {recon}")
-            plt.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_inc_atk_cnn_{label}.png"))
-            plt.close("all")
 
             
 if __name__ == "__main__":
