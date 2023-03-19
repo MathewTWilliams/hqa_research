@@ -259,18 +259,18 @@ def main():
 
     for root in RECON_ROOT_NAMES:
 
-        eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, False, False) #make_tsne = true
-        eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, False, False)
-        eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10, False, False) #make_tsne = true
-        eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47, False, False) #make_tsne = true
+        eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, make_tsne=True, make_persistence=True) # only model to calculate entropies
+        eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, make_tsne = False, make_persistence=False) # this experiment was only concerned about accuracy
+        eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) 
+        eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
         if root != "data_recon_4":
             #eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_FFT_DIR_PATH, root, 10)
             
-            eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10, make_tsne = False, make_persistence = False) #make_tsne = true
-            eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10, make_tsne = False, make_persistence = False) #make_tsne = true
-            eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47, make_tsne = False, make_persistence = False) #make_tsne = true
+            eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10,  make_tsne = True, make_persistence=False) 
+            eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10,  make_tsne = True, make_persistence=False) 
+            eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
 
-    eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3", False, False)
+    eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3",  make_tsne = True, make_persistence=False)
 
 if __name__ == "__main__": 
     main()

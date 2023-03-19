@@ -69,7 +69,7 @@ def test_recon_model(model, dl_test_map, model_name, ds_name, attack = None):
 if __name__ == "__main__":
 
     # Regular MNIST
-    '''dl_train, dl_valid, _ = load_mnist(validate=True)
+    dl_train, dl_valid, _ = load_mnist(validate=True)
     lenet_model = run_lenet(dl_train, 
             dl_valid, 
             LENET_MNIST_PATH, 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
             LENET_EMNIST_PATH,
             "Lenet_emnist.png",
             47, 
-            validate = True)'''
+            validate = True)
 
     # Lenet training on mega dataset or reconstructions
     dl_train, dl_test_map = load_mega_dataset(IMG_MNIST_DIR_PATH, IMG_FOLDER_TRANFORM)
