@@ -98,8 +98,8 @@ def make_persistence_metrics(model, ds_test, org_predictions, atk_predictions, m
             img_wass_dist = calculate_wasserstein_distance(img.numpy(), atk_img.numpy(), label, org_pred, atk_pred, root, attack.attack)
             cnn_wass_dist = calc_wass_dist_CNN_stack(model, img, atk_img, label, org_pred, atk_pred, root, attack.attack)
 
-            add_wasserstein_distance(model_name, ds_name, label, org_pred, root, attack.attack, "Image", img_wass_dist)
-            add_wasserstein_distance(model_name, ds_name, label, atk_pred, root, attack.attack, "CNN Output", cnn_wass_dist)
+            add_wasserstein_distance(model_name, ds_name, label, org_pred, atk_pred, root, attack.attack, "Image", img_wass_dist)
+            add_wasserstein_distance(model_name, ds_name, label, org_pred, atk_pred, root, attack.attack, "CNN Output", cnn_wass_dist)
         except IndexError as e: 
             print("IndexError: Persistence Interval values were all infinity")
         
