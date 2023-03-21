@@ -11,8 +11,7 @@ import numpy as np
 from tqdm import tqdm
 from pytorch_cnn_base import outputs_to_predictions
 from numeric_image_folder import NumericImageFolder
-
-
+from torchattacks import FGSM
 
 transform = transforms.Compose(
     [
@@ -21,10 +20,9 @@ transform = transforms.Compose(
     ]
 )
 
-
 N_RECONSTRUCTIONS = 10
 
-def main():
+def main(run_attack = False):
 
     hqa = torch.load(HQA_MNIST_SAVE_PATH)
     hqa.eval()
@@ -32,7 +30,9 @@ def main():
     lenet = torch.load(LENET_MNIST_PATH)
     lenet.eval()
 
-    fgsm_attack = FGSM(lenet)
+    fgsm_attack = None
+    if run_attack: 
+        fgsm_attack = FGSM(lenet)
 
     root = os.path.join(IMG_MNIST_DIR_PATH, "data_original")
     ds_img_folder = NumericImageFolder(root, transform=transform)
@@ -52,7 +52,8 @@ def main():
 
         cur_recons = torch.Tensor(np.array(cur_recons)).squeeze().unsqueeze(1)
         cur_labels = torch.LongTensor(label_tensor.tolist() * N_RECONSTRUCTIONS)
-        cur_recons = fgsm_attack(cur_recons, cur_labels)
+        if run_attack:
+            cur_recons = fgsm_attack(cur_recons, cur_labels)
 
         cur_outputs = lenet(cur_recons.to(device)).detach().cpu()
         cur_predictions = outputs_to_predictions(cur_outputs)
@@ -64,12 +65,13 @@ def main():
     for cur_label, n_correct_preds in results_dict.items(): 
             num_correct = np.sum(n_correct_preds)
             perc_correct = num_correct / (N_RECONSTRUCTIONS * len(n_correct_preds))
-            weighted_avg = perc_correct * (len(num_correct) / len(ds_img_folder))
+            weighted_value = perc_correct * (len(n_correct_preds) / len(ds_img_folder))
+            cur_avg_accuracy += weighted_value
+            
+    attack_name = fgsm_attack.attack if run_attack else "None"
 
-            cur_avg_accuracy += weighted_avg
-
-    
-    add_accuracy_results("Lenet(10 recons per image)", "MNIST", "data_original", fgsm_attack.attack, avg_accuracy)    
+    add_accuracy_results("Lenet(10 recons per image)", "MNIST", "data_original", attack_name, avg_accuracy)    
 
 if __name__ == "__main__":
-    main()
+    main(run_attack=False)
+    main(run_attack=True)

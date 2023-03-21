@@ -62,46 +62,61 @@ def make_persistence_metrics(model, ds_test, org_predictions, atk_predictions, m
         org_pred = org_predictions[idx]
         atk_pred = atk_predictions[idx]
 
-
         try:
             org_entr = calculate_entropy(img.numpy(), label, org_pred, root)
-            atk_entr = calculate_entropy(atk_img.numpy(), label, atk_pred, root, attack.attack)
-
             add_persistence_entropy(model_name, ds_name, label, org_pred, root, "None", "Image", org_entr)
+
+        except IndexError as e: 
+            print("IndexError: Persistence Entropy values were all infinity")
+
+        try:
+            atk_entr = calculate_entropy(atk_img.numpy(), label, atk_pred, root, attack.attack)
             add_persistence_entropy(model_name, ds_name, label, atk_pred, root, attack.attack, "Image", atk_entr)
 
         except IndexError as e: 
-            print("IndexError: Persistence Inteval values were all infinity")
+            print("IndexError: Persistence Entropy values were all infinity")
 
         try: 
             org_entr = calc_entropy_model_CNN_stack(model, img, label, org_pred, root)
-            atk_entr = calc_entropy_model_CNN_stack(model, atk_img, label, atk_pred, root, attack.attack)
-
             add_persistence_entropy(model_name, ds_name, label, org_pred, root, "None", "CNN Output", org_entr)
+            
+        except IndexError as e:
+            print("IndexError: Persistence Entropy values were all infinity")
+
+        try: 
+            atk_entr = calc_entropy_model_CNN_stack(model, atk_img, label, atk_pred, root, attack.attack)
             add_persistence_entropy(model_name, ds_name, label, atk_pred, root, attack.attack, "CNN Output", atk_entr)
             
         except IndexError as e:
-            print("IndexError: Persistence Inteval values were all infinity")
+            print("IndexError: Persistence Entropy values were all infinity")
 
         '''try:     
             org_img_pipeline = make_vectorized_persistence(img.numpy(), label, root)
-            ak_img_pipeline = make_vectorized_persistence(atk_img.numpy(), label, root, attack.attack)
-
             add_vectorized_persistence(model_name, ds_name, label, org_pred, root, "None", org_img_pipeline)
+
+        except ValueError as e: 
+            print("ValueError: Division by zero error in Scalar step on regular image")
+
+        try:     
+            ak_img_pipeline = make_vectorized_persistence(atk_img.numpy(), label, root, attack.attack)
             add_vectorized_persistence(model_name, ds_name, label, atk_pred, root, attack.attack, ak_img_pipeline)
 
         except ValueError as e: 
             print("ValueError: Division by zero error in Scalar step on regular image")'''
         
         try: 
-
             img_wass_dist = calculate_wasserstein_distance(img.numpy(), atk_img.numpy(), label, org_pred, atk_pred, root, attack.attack)
-            cnn_wass_dist = calc_wass_dist_CNN_stack(model, img, atk_img, label, org_pred, atk_pred, root, attack.attack)
-
             add_wasserstein_distance(model_name, ds_name, label, org_pred, atk_pred, root, attack.attack, "Image", img_wass_dist)
-            add_wasserstein_distance(model_name, ds_name, label, org_pred, atk_pred, root, attack.attack, "CNN Output", cnn_wass_dist)
+
         except IndexError as e: 
-            print("IndexError: Persistence Interval values were all infinity")
+            print(f"Error calculting Wasserstein Distance: {e}")
+
+        try: 
+            cnn_wass_dist = calc_wass_dist_CNN_stack(model, img, atk_img, label, org_pred, atk_pred, root, attack.attack)
+            add_wasserstein_distance(model_name, ds_name, label, org_pred, atk_pred, root, attack.attack, "CNN Output", cnn_wass_dist)
+
+        except IndexError as e: 
+            print(f"Error calculting Wasserstein Distance: {e}")
         
 
 def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsne = True, make_persistence = True):
