@@ -11,38 +11,6 @@ from PIL import Image
 from persistent_homology import calculate_wasserstein_distance
 import numpy as np
 
-def make_sampled_distributions():
-
-    if not os.path.exists(WASS_DIST_VIS_DIR): 
-        os.mkdir(WASS_DIST_VIS_DIR)
-
-    wasserstein_df = pd.read_csv(WASS_DIST_OUTPUT_FILE, index_col=False)
-    
-    unique_labels = wasserstein_df["Label"].unique()
-    for recon in RECON_ROOT_NAMES: 
-        for label in unique_labels: 
-            cur_wasserstein_df = wasserstein_df[(wasserstein_df["Reconstruction"] == recon) & 
-                                                (wasserstein_df["Label"] == label)]
-
-            wass_img_df = cur_wasserstein_df[cur_wasserstein_df["Input"] == "Image"]
-            wass_cnn_df = cur_wasserstein_df[cur_wasserstein_df["Input"] == "CNN Output"]
-
-            inc_wass_img_df = wass_img_df[wass_img_df["Prediction"] != label]
-            inc_wass_cnn_df = wass_cnn_df[wass_cnn_df["Prdictionn"] != label]
-
-            cur_imgs_dir = os.path.join(IMG_MNIST_DIR_PATH, recon, label)
-            random_imgs = random.sample(os.listdir(cur_imgs_dir), k = 2 * len(inc_wass_img_df))
-
-            for i in range(0, 2 * len(inc_wass_img_df), 2): 
-                img_1 = random_imgs[i]
-                img_2 = random_imgs[i+1]
-                
-                img_1 = np.asarray(Image.open(os.path.join(cur_imgs_dir, img_1)))
-                img_2 = np.asarray(Image.open(os.path.join(cur_imgs_dir, img_2)))
-
-                #calculate_wasserstein_distance(img_1, img_2, label, )
-                
-
 def make_result_distributions():
 
     if not os.path.exists(WASS_DIST_VIS_DIR):

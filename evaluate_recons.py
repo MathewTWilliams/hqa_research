@@ -183,34 +183,25 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
 
         sample_imgs_same_label_wasser_dist(lenet_model, img_map, model_name, ds_name, root)
 
-
-    
     # TSNE related
     if make_tsne and root in ["data_original", "data_recon_4"]:
         atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
         atk_mis_true_labels = [ds_test.targets[idx] for idx in atk_incorrect_idxs]
-        atk_mis_images = [ds_test[idx][0].squeeze(0).numpy.flatten() for idx in atk_incorrect_idxs]
+        atk_mis_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in atk_incorrect_idxs]
         run_tsne(model_name, atk_mis_outputs, atk_mis_true_labels, ds_name, root, num_classes, "model output", fgsm_attack.attack, misclassified=True)
         run_tsne(model_name, atk_mis_images, atk_mis_true_labels, ds_name, root, num_classes, "input image", fgsm_attack.attack, misclassified=True)
 
-        test_idxs, _ = train_test_split(
-            range(len(ds_test)),
-            stratify = ds_test.targets,
-            train_size = len(atk_incorrect_idxs),
+        tsne_sample_idxs,_ = train_test_split(
+            org_correct_idxs, 
+            stratify = [ds_test[i][1] for i in org_correct_idxs],
+            train_size = len(atk_incorrect_idxs), 
             random_state = RANDOM_SEED
         )
 
-        ds_test = Subset(ds_test, test_idxs)
-        dl_test = DataLoader(ds_test, batch_size = MNIST_BATCH_SIZE, shuffle = False, num_workers = NUM_DATA_LOADER_WORKERS)
-        
-        new_model_outputs = query_model(lenet_model, dl_test, return_softmax = False)
-        new_predictions = outputs_to_predictions(torch.Tensor(new_model_outputs))
-        current_targets = [ds_test.dataset.targets[i] for i in test_idxs]
-        correct_idxs,_ = evaluate_dataset(model_name, current_targets, new_predictions, ds_name, root, save_result = False)
+        correct_outputs = [model_output[i] for i in tsne_sample_idxs]
+        correct_images = [ds_test[i][0].squeeze(0).numpy().flatten() for i in tsne_sample_idxs]
+        correct_targets = [ds_test[i][1] for i in tsne_sample_idxs]
 
-        correct_outputs = [new_model_outputs[idx] for idx in correct_idxs]
-        correct_targets = [current_targets[idx] for idx in correct_idxs]
-        correct_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in correct_idxs]
         run_tsne(model_name, correct_outputs, correct_targets, ds_name, root, num_classes, "model output")
         run_tsne(model_name, correct_images, correct_targets, ds_name, root, num_classes, "input image")
     
@@ -247,13 +238,13 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
     # query model and evaluate the results    
     model_output = query_model(lenet_model, dl_test, return_softmax = False)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
-    org_correct_idxs, org_incorrect_idxs = evaluate_dataset(model_name, ds_test._targets, org_predictions, ds_name, root_name, save_result=True)
+    org_correct_idxs, _ = evaluate_dataset(model_name, ds_test._targets, org_predictions, ds_name, root_name, save_result=True)
 
     # make fgsm attack, query attacked model, evaluate the results
     fgsm_attack = torchattacks.FGSM(lenet_model)
     atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
-    atk_correct_idxs, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test._targets, atk_predictions, ds_name, root_name, True, fgsm_attack.attack)
+    _, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test._targets, atk_predictions, ds_name, root_name, True, fgsm_attack.attack)
 
     if make_persistence:
         #Two examples of persistent barcode with misclassified point and its attacked counterpart.
@@ -268,29 +259,40 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
         #Calculate Entropies
         make_persistence_metrics(lenet_model, ds_test, org_predictions, atk_predictions, model_name, ds_name, root_name, fgsm_attack)
 
+        wass_sample_idxs,_ = train_test_split(
+            org_correct_idxs, 
+            stratify = [ds_test[i][1] for i in org_correct_idxs],
+            train_size = len(atk_incorrect_idxs) * 2, 
+            random_state = RANDOM_SEED)
+
+        img_map = {}
+
+        for idx in wass_sample_idxs: 
+            img, label = ds_test[idx]
+            if label not in img_map: 
+                img_map[label] = []
+            img_map[label].append(img)
+        
+        sample_imgs_same_label_wasser_dist(lenet_model, img_map, model_name, ds_name, root)
+
+
     if make_tsne and (add_root is not None or root in ["data_original", "data_recon_3"]):
         atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
+        atk_mis_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in atk_incorrect_idxs]
         mis_true_labels = [ds_test._targets[idx] for idx in atk_incorrect_idxs]
         run_tsne(model_name, atk_mis_outputs, mis_true_labels, ds_name, root_name, num_classes, "model output", fgsm_attack.attack, misclassified=True)
-
-        test_idxs, _ = train_test_split(
-            range(len(ds_test)),
-            stratify = ds_test._targets,
-            train_size = len(atk_incorrect_idxs), 
+        run_tsne(model_name, atk_mis_images, mis_true_labels, ds_name, root_name, num_classes, "input image", fgsm_attack.attack, misclassified=True)
+        tsne_sample_idxs, _ = train_test_split(
+            org_correct_idxs, 
+            stratify = [ds_test[i][1] for i in org_correct_idxs], 
+            train_size = len(atk_incorrect_idxs),
             random_state = RANDOM_SEED
         )
 
-        ds_test = Subset(ds_test, test_idxs)
-        dl_test = DataLoader(ds_test, batch_size = MNIST_BATCH_SIZE, shuffle = False, num_workers=NUM_DATA_LOADER_WORKERS)
-        
-        new_model_outputs = query_model(lenet_model, dl_test, return_softmax = False)
-        new_predictions = outputs_to_predictions(torch.Tensor(new_model_outputs))
-        current_targets = [ds_test.dataset._targets[idx] for idx in test_idxs]
-        correct_idxs,_ = evaluate_dataset(model_name, current_targets, new_predictions, ds_name, root_name, save_result = False)
+        correct_outputs = [model_output[i] for i in tsne_sample_idxs]
+        correct_images = [ds_test[i][0].squeeze(0).numpy().flatten() for i in tsne_sample_idxs]
+        correct_targets = [ds_test[i][1] for i in tsne_sample_idxs]
 
-        correct_outputs = [new_model_outputs[idx] for idx in correct_idxs]
-        correct_targets = [current_targets[idx] for idx in correct_idxs]
-        correct_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in correct_idxs]
         run_tsne(model_name, correct_outputs, correct_targets, ds_name, root_name, num_classes, "model output")
         run_tsne(model_name, correct_images, correct_targets, ds_name, root_name, num_classes, "input image")
     
