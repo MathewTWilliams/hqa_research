@@ -164,3 +164,19 @@ def make_vectorized_persistence(np_img, label, pred, reconstruction, attack_name
     to_print = f"vectorized {reconstruction} persistence diagram {img_pipeline} for {print_end}"
     print(to_print)
     return img_pipeline
+
+
+# example of calling vectorized_persistence
+'''try:     
+    org_img_pipeline = make_vectorized_persistence(img.numpy(), label, root)
+    add_vectorized_persistence(model_name, ds_name, label, org_pred, root, "None", org_img_pipeline)
+
+    except ValueError as e: 
+        print("ValueError: Division by zero error in Scalar step on regular image")
+
+    try:     
+        ak_img_pipeline = make_vectorized_persistence(atk_img.numpy(), label, root, attack.attack)
+        add_vectorized_persistence(model_name, ds_name, label, atk_pred, root, attack.attack, ak_img_pipeline)
+
+    except ValueError as e: 
+        print("ValueError: Division by zero error in Scalar step on regular image")'''

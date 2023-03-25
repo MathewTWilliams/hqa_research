@@ -48,9 +48,9 @@ def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, 
         plt.savefig(os.path.join(CONF_MAT_VIS_DIR, f"{model_name}_{ds_name}_{recon_name}.png"))
         plt.close("all")
 
-        #avg_accuracy = len(correct_idxs) / len(test_labels)
-        #attack_name = attack if attack != None else "None"
-        #add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
+        avg_accuracy = len(correct_idxs) / len(test_labels)
+        attack_name = attack if attack != None else "None"
+        add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
 
     return correct_idxs, incorrect_idxs
 
@@ -61,7 +61,7 @@ def make_persistence_metrics(model, ds_test, org_predictions, atk_predictions, m
         atk_img = attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
         org_pred = org_predictions[idx]
         atk_pred = atk_predictions[idx]
-
+        
         try:
             org_entr = calculate_entropy(img.numpy(), label, org_pred, root)
             add_persistence_entropy(model_name, ds_name, label, org_pred, root, "None", "Image", org_entr)
@@ -79,45 +79,52 @@ def make_persistence_metrics(model, ds_test, org_predictions, atk_predictions, m
         try: 
             org_entr = calc_entropy_model_CNN_stack(model, img, label, org_pred, root)
             add_persistence_entropy(model_name, ds_name, label, org_pred, root, "None", "CNN Output", org_entr)
-            
+                
         except IndexError as e:
             print("IndexError: Persistence Entropy values were all infinity")
 
         try: 
             atk_entr = calc_entropy_model_CNN_stack(model, atk_img, label, atk_pred, root, attack.attack)
             add_persistence_entropy(model_name, ds_name, label, atk_pred, root, attack.attack, "CNN Output", atk_entr)
-            
+                
         except IndexError as e:
             print("IndexError: Persistence Entropy values were all infinity")
 
-        '''try:     
-            org_img_pipeline = make_vectorized_persistence(img.numpy(), label, root)
-            add_vectorized_persistence(model_name, ds_name, label, org_pred, root, "None", org_img_pipeline)
-
-        except ValueError as e: 
-            print("ValueError: Division by zero error in Scalar step on regular image")
-
-        try:     
-            ak_img_pipeline = make_vectorized_persistence(atk_img.numpy(), label, root, attack.attack)
-            add_vectorized_persistence(model_name, ds_name, label, atk_pred, root, attack.attack, ak_img_pipeline)
-
-        except ValueError as e: 
-            print("ValueError: Division by zero error in Scalar step on regular image")'''
-        
         try: 
             img_wass_dist = calculate_wasserstein_distance(img.numpy(), atk_img.numpy(), label, org_pred, atk_pred, root, attack.attack)
             add_wasserstein_distance(model_name, ds_name, label, org_pred, atk_pred, root, attack.attack, "Image", img_wass_dist)
 
-        except IndexError as e: 
+        except Exception as e: 
             print(f"Error calculting Wasserstein Distance: {e}")
 
         try: 
             cnn_wass_dist = calc_wass_dist_CNN_stack(model, img, atk_img, label, org_pred, atk_pred, root, attack.attack)
             add_wasserstein_distance(model_name, ds_name, label, org_pred, atk_pred, root, attack.attack, "CNN Output", cnn_wass_dist)
 
-        except IndexError as e: 
+        except Exception as e: 
             print(f"Error calculting Wasserstein Distance: {e}")
         
+def sample_imgs_same_label_wasser_dist(model, img_map, model_name, ds_name, root):
+    
+    for label, imgs in img_map.keys():
+        # if we have an odd number of photos, ignore the last photo
+        end = len(imgs) - 1 if len(imgs) % 2 == 0 else len(imgs) - 2
+        for i in range(0, end, 2):
+            img_1 = imgs[i]
+            img_2 = imgs[i+1]
+
+            try: 
+                img_wasser_dist = calculate_wasserstein_distance(img_1.numpy(), img_2.numpy(), label, label, label, root, "None")
+                add_wasserstein_distance(model_name, ds_name, label, label, label, root, "None", "Image", img_wasser_dist)
+            except Exception as e: 
+                print(f"Error calculating Wasserstein Distance: {e}")
+
+            try: 
+                cnn_wasser_dist = calc_wass_dist_CNN_stack(model, img_1, img_2, label, label, label, root, "None")
+                add_wasserstein_distance(model_name, ds_name, label, label, label, root, "None", "CNN Output", cnn_wasser_dist)
+            except Exception as e: 
+                print(f"Error calculating Wasserstein Distance: {e}")
+
 
 def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsne = True, make_persistence = True):
     """
@@ -139,7 +146,7 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
     #query model and evaluate results as normal
     model_output = query_model(lenet_model, dl_test, return_softmax = False)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
-    _, _ = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root, save_result = True)
+    org_correct_idxs, _ = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root, save_result = True)
 
     #make fgsm attack, query attacked model, evaluate the results
     fgsm_attack = torchattacks.FGSM(lenet_model)
@@ -148,7 +155,7 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
     _, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
 
     if make_persistence: 
-        #Two examples of persistent barcode with misclassified point and its attacked counterpart.
+        #Two examples of persistent barcode with attacked misclassified point and its unattacked counterpart. 
         # One on the image and one on the output the CNN layers
         img, label = ds_test[atk_incorrect_idxs[0]]
         make_persistence_barcode(img.numpy(), label, root, False)
@@ -160,12 +167,31 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
         #Calculate Entropies
         make_persistence_metrics(lenet_model, ds_test, org_predictions, atk_predictions, model_name, ds_name, root, fgsm_attack)
 
+        wass_sample_idxs,_ = train_test_split(
+            org_correct_idxs, 
+            stratify = [ds_test[i][1] for i in org_correct_idxs], 
+            train_size = len(atk_incorrect_idxs) * 2,
+            random_state = RANDOM_SEED
+        )
+
+        img_map = {}
+        for idx in wass_sample_idxs: 
+            img, label = ds_test[idx]
+            if label not in img_map:
+                img_map[label] = []
+            img_map[label].append(img)
+
+        sample_imgs_same_label_wasser_dist(lenet_model, img_map, model_name, ds_name, root)
+
+
     
     # TSNE related
     if make_tsne and root in ["data_original", "data_recon_4"]:
         atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
         atk_mis_true_labels = [ds_test.targets[idx] for idx in atk_incorrect_idxs]
+        atk_mis_images = [ds_test[idx][0].squeeze(0).numpy.flatten() for idx in atk_incorrect_idxs]
         run_tsne(model_name, atk_mis_outputs, atk_mis_true_labels, ds_name, root, num_classes, "model output", fgsm_attack.attack, misclassified=True)
+        run_tsne(model_name, atk_mis_images, atk_mis_true_labels, ds_name, root, num_classes, "input image", fgsm_attack.attack, misclassified=True)
 
         test_idxs, _ = train_test_split(
             range(len(ds_test)),
@@ -274,8 +300,8 @@ def main():
 
     for root in RECON_ROOT_NAMES:
 
-        eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, make_tsne=True, make_persistence=True) # only model to calculate entropies
-        eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, make_tsne = False, make_persistence=False) # this experiment was only concerned about accuracy
+        eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, make_tsne=True, make_persistence=False) # only model to calculate entropies
+        eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) # this experiment was only concerned about accuracy
         eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) 
         eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
         if root != "data_recon_4":
