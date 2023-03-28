@@ -13,6 +13,8 @@ Lenet,MNIST Recons,data_recon_3,None,0.921
 Lenet,MNIST Recons,data_recon_3,FGSM,0.857
 Lenet,MNIST Recons,data_recon_4,None,0.814
 Lenet,MNIST Recons,data_recon_4,FGSM,0.726
+Lenet(10 recons per image),MNIST,data_original,None,0.7986099999999999
+Lenet(10 recons per image),MNIST,data_original,FGSM,0.78028
 Lenet,MNIST,data_original,None,0.9903
 Lenet,MNIST,data_original,FGSM,0.9642
 Lenet (Adversarial),MNIST,data_original,None,0.9912
@@ -55,8 +57,6 @@ Lenet,Tiled_Fashion_MNIST,data_recon_0,None,0.8639
 Lenet,Tiled_Fashion_MNIST,data_recon_0,FGSM,0.5562
 Lenet,Tiled_EMNIST,data_recon_0,None,0.8665425531914893
 Lenet,Tiled_EMNIST,data_recon_0,FGSM,0.7017021276595745
-Lenet,Tiled_MNIST,data_recon_0&3,None,0.9384
-Lenet,Tiled_MNIST,data_recon_0&3,FGSM,0.8734
 Lenet,MNIST,data_recon_1,None,0.9878
 Lenet,MNIST,data_recon_1,FGSM,0.9583
 Lenet (Adversarial),MNIST,data_recon_1,None,0.9896
