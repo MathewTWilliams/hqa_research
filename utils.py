@@ -85,7 +85,7 @@ PERS_ETP_OUTPUT_FILE = os.path.join(CWD, "persistence_entropies.csv")
 PERS_EPT_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstruction", "Attack", "Input", "H0", "H1"]
 
 WASS_DIST_OUTPUT_FILE = os.path.join(CWD, "wasserstein_distances.csv")
-WASS_DIST_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction 1", "Prediction 2" "Reconstruction", "Attack", "Input", "Wasserstein_Distance"]
+WASS_DIST_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction 1(org)", "Prediction 2(atk)", "Reconstruction", "Attack", "Input", "Wasserstein_Distance"]
 
 
 MNIST_TRANSFORM = transforms.Compose([
@@ -193,8 +193,8 @@ def add_wasserstein_distance(model_name, ds_name, label, pred_1, pred_2, reconst
     row_dict = {"Model" : [model_name],
             "Dataset" : [ds_name],
             "Label" : [label],
-            "Prediction 1" : [pred_1],
-            "Prediction 2" : [pred_2],
+            "Prediction 1(org)" : [pred_1],
+            "Prediction 2(atk)" : [pred_2],
             "Reconstruction" : [reconstruction],
             "Attack": [attack_name],
             "Input" : [input_type],

@@ -39,7 +39,8 @@ for (label in unique(data$Label)) {
     file_name <- sprintf("./Visuals/Entropies/%s_%d.png", recon, label) 
     png(file_name, width = 1200, height = 1200)
     
-    par(mfrow=c(2, 4))
+    #par(mfrow=c(2, 4))
+    par(mfrow=c(2, 2))
     
     bagplot(cor_recon_reg_img_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
             show.outlier = TRUE, show.looppoints=TRUE,
@@ -48,7 +49,8 @@ for (label in unique(data$Label)) {
             show.baghull=TRUE, verbose = FALSE, 
             xlim = c(0,4), ylim = c(0,4),
             xlab = "H0", ylab = "H1", approx.limit = 2000,
-            main = sprintf("Classified images of %d from %s: %d", label, recon, length(cor_recon_reg_img_df)))
+            main = sprintf("Classified images of %d from %s: %d", label, recon, nrow(cor_recon_reg_img_df)),
+            cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
     
     bagplot(inc_recon_reg_img_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
             show.outlier = TRUE, show.looppoints=TRUE,
@@ -57,25 +59,28 @@ for (label in unique(data$Label)) {
             show.baghull=TRUE, verbose = FALSE,
             xlim = c(0,4), ylim = c(0,4),
             xlab = "H0", ylab = "H1", approx.limit = 2000,
-            main = sprintf("Misclassified Images as %d from %s: %d", label, recon, length(inc_recon_reg_img_df)))
+            main = sprintf("Misclassified Images as %d from %s: %d", label, recon, nrow(inc_recon_reg_img_df)),
+            cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
     
-    bagplot(cor_recon_reg_cnn_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
-            show.outlier = TRUE, show.looppoints=TRUE,
-            show.bagpoints = TRUE, dkmethod=2,
-            show.whiskers=FALSE, show.loophull=TRUE,
-            show.baghull=TRUE, verbose = FALSE,
-            xlim = c(0,4), ylim = c(0,4),
-            xlab = "H0", ylab = "H1", approx.limit = 2000,
-            main = sprintf("Classified CNN Outputs of %d from %s": %d, label, recon, length(cor_recon_reg_cnn_df)))
+    # bagplot(cor_recon_reg_cnn_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
+    #         show.outlier = TRUE, show.looppoints=TRUE,
+    #         show.bagpoints = TRUE, dkmethod=2,
+    #         show.whiskers=FALSE, show.loophull=TRUE,
+    #         show.baghull=TRUE, verbose = FALSE,
+    #         xlim = c(0,4), ylim = c(0,4),
+    #         xlab = "H0", ylab = "H1", approx.limit = 2000,
+    #         main = sprintf("Classified CNN Outputs of %d from %s: %d", label, recon, nrow(cor_recon_reg_cnn_df)),
+    #         cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
     
-    bagplot(inc_recon_reg_cnn_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
-            show.outlier = TRUE, show.looppoints=TRUE,
-            show.bagpoints = TRUE, dkmethod=2,
-            show.whiskers=FALSE, show.loophull=TRUE,
-            show.baghull=TRUE, verbose = FALSE,
-            xlim = c(0,4), ylim = c(0,4),
-            xlab = "H0", ylab = "H1", approx.limit = 2000,
-            main = sprintf("Misclassified CNN Outputs as %d from %s: %d", label, recon, length(inc_recon_reg_cnn_df)))
+    # bagplot(inc_recon_reg_cnn_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
+    #         show.outlier = TRUE, show.looppoints=TRUE,
+    #         show.bagpoints = TRUE, dkmethod=2,
+    #         show.whiskers=FALSE, show.loophull=TRUE,
+    #         show.baghull=TRUE, verbose = FALSE,
+    #         xlim = c(0,4), ylim = c(0,4),
+    #         xlab = "H0", ylab = "H1", approx.limit = 2000,
+    #         main = sprintf("Misclassified CNN Outputs as %d from %s: %d", label, recon, nrow(inc_recon_reg_cnn_df)),
+    #         cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
     
     bagplot(cor_recon_atk_img_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
             show.outlier = TRUE, show.looppoints=TRUE,
@@ -84,7 +89,8 @@ for (label in unique(data$Label)) {
             show.baghull=TRUE, verbose = FALSE,
             xlim = c(0,4), ylim = c(0,4),
             xlab = "H0", ylab = "H1", approx.limit = 2000,
-            main = sprintf("Classified Attacked Images of %d from %s: %d", label, recon, length(cor_recon_atk_img_df)))
+            main = sprintf("Classified Attacked Images of %d from %s: %d", label, recon, nrow(cor_recon_atk_img_df)),
+            cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 
     bagplot(inc_recon_atk_img_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
             show.outlier = TRUE, show.looppoints=TRUE,
@@ -93,25 +99,28 @@ for (label in unique(data$Label)) {
             show.baghull=TRUE, verbose = FALSE,
             xlim = c(0,4), ylim = c(0,4), approx.limit = 2000,
             xlab = "H0", ylab = "H1",
-            main = sprintf("Misclassified Attacked Images as %d from %s: %d", label, recon, length(inc_recon_atk_img_df)))
+            main = sprintf("Misclassified Attacked Images as %d from %s: %d", label, recon, nrow(inc_recon_atk_img_df)),
+            cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
     
-    bagplot(cor_recon_atk_cnn_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
-            show.outlier = TRUE, show.looppoints=TRUE,
-            show.bagpoints = TRUE, dkmethod=2,
-            show.whiskers=FALSE, show.loophull=TRUE,
-            show.baghull=TRUE, verbose = FALSE,
-            xlim = c(0,4), ylim = c(0,4),
-            xlab = "H0", ylab = "H1", approx.limit = 2000,
-            main = sprintf("Classified Attacked CNN Ouputs of %d from %s: %d", label, recon, length(cor_recon_atk_cnn_df)))
+    # bagplot(cor_recon_atk_cnn_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
+    #         show.outlier = TRUE, show.looppoints=TRUE,
+    #         show.bagpoints = TRUE, dkmethod=2,
+    #         show.whiskers=FALSE, show.loophull=TRUE,
+    #         show.baghull=TRUE, verbose = FALSE,
+    #         xlim = c(0,4), ylim = c(0,4),
+    #         xlab = "H0", ylab = "H1", approx.limit = 2000,
+    #         main = sprintf("Classified Attacked CNN Ouputs of %d from %s: %d", label, recon, nrow(cor_recon_atk_cnn_df)),
+    #         cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
     
-    bagplot(inc_recon_atk_cnn_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
-            show.outlier = TRUE, show.looppoints=TRUE,
-            show.bagpoints = TRUE, dkmethod=2,
-            show.whiskers=FALSE, show.loophull=TRUE,
-            show.baghull=TRUE, verbose = FALSE,
-            xlim = c(0,4), ylim = c(0,4),
-            xlab = "H0", ylab = "H1", approx.limit = 2000,
-            main = sprintf("Misclassified Attacked CNN Outputs as %d from %s: %d", label, recon, length(inc_recon_atk_cnn_df)))
+    # bagplot(inc_recon_atk_cnn_df[,c("H0", "H1")], factor = 3, create.plot = TRUE,
+    #         show.outlier = TRUE, show.looppoints=TRUE,
+    #         show.bagpoints = TRUE, dkmethod=2,
+    #         show.whiskers=FALSE, show.loophull=TRUE,
+    #         show.baghull=TRUE, verbose = FALSE,
+    #         xlim = c(0,4), ylim = c(0,4),
+    #         xlab = "H0", ylab = "H1", approx.limit = 2000,
+    #         main = sprintf("Misclassified Attacked CNN Outputs as %d from %s: %d", label, recon, nrow(inc_recon_atk_cnn_df)),
+    #         cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
     
     dev.off()
   }

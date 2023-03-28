@@ -109,6 +109,7 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
     ax1 = plt.gca()
     ax1.set_xlabel("Reconstruction Layer", **font_dict)
     ax1.set_ylabel("Accuracy", **font_dict)
+    ax1.set_ylim(0.2, 1.0)
     plot_1 = ax1.plot(x_ticks, reg_acc_values, color = "blue")
     plot_2 = ax1.plot(x_ticks, atk_acc_values, color = "orange")
     all_plots = plot_1 + plot_2

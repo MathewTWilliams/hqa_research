@@ -141,7 +141,6 @@ def calculate_wasserstein_distance(org_np_img, atk_np_img, true_label, org_pred,
     atk_diag = atk_cc.persistence()
     atk_dgels = np.asarray([list(dl[1]) for dl in atk_diag])
 
-    print("Caculating Distance Metric")
     wass_dist = wasserstein_distance(org_dgels, atk_dgels, matching = False, order = 1.0, internal_p = 2)
     print(f"Wasserstein distance of {avatar} persistence bars for {true_label} normal declared {org_pred} and attack declared {atk_pred}: {wass_dist}")
 

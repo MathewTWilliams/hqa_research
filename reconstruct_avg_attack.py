@@ -41,7 +41,7 @@ def main(run_attack = False):
 
     results_dict = {i: [] for i in range(10)}
 
-    for data, label_tensor in dl_img_folder:
+    for data, label_tensor in tqdm(dl_img_folder):
         cur_label = label_tensor.tolist()[0]
         cur_recons = []
 
@@ -66,7 +66,7 @@ def main(run_attack = False):
             num_correct = np.sum(n_correct_preds)
             perc_correct = num_correct / (N_RECONSTRUCTIONS * len(n_correct_preds))
             weighted_value = perc_correct * (len(n_correct_preds) / len(ds_img_folder))
-            cur_avg_accuracy += weighted_value
+            avg_accuracy += weighted_value
             
     attack_name = fgsm_attack.attack if run_attack else "None"
 

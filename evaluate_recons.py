@@ -16,7 +16,9 @@ from sklearn.model_selection import train_test_split
 from persistent_homology import *
 from sklearn.metrics import ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
-
+import random
+ 
+import reconstruct_avg_attack
 
 def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, save_result = True, attack = None):
     """
@@ -104,12 +106,11 @@ def make_persistence_metrics(model, ds_test, org_predictions, atk_predictions, m
         except Exception as e: 
             print(f"Error calculting Wasserstein Distance: {e}")
         
-def sample_imgs_same_label_wasser_dist(model, img_map, model_name, ds_name, root):
+def same_label_wasser_dist(model, img_map, model_name, ds_name, root):
     
-    for label, imgs in img_map.keys():
-        # if we have an odd number of photos, ignore the last photo
-        end = len(imgs) - 1 if len(imgs) % 2 == 0 else len(imgs) - 2
-        for i in range(0, end, 2):
+    for label, imgs in img_map.items():
+
+        for i in range(0, len(imgs) - 1, 2):
             img_1 = imgs[i]
             img_2 = imgs[i+1]
 
@@ -124,6 +125,28 @@ def sample_imgs_same_label_wasser_dist(model, img_map, model_name, ds_name, root
                 add_wasserstein_distance(model_name, ds_name, label, label, label, root, "None", "CNN Output", cnn_wasser_dist)
             except Exception as e: 
                 print(f"Error calculating Wasserstein Distance: {e}")
+
+def sample_by_class(ds_test, org_correct_idxs, org_predictions, atk_incorrect_idxs, atk_predictions, force_even = False): 
+
+    classes = np.unique(org_predictions)
+
+    atk_count_map = {num: 0 for num in classes}
+    org_img_map = {num: [] for num in classes}
+    return_img_map = {num: [] for num in classes}
+
+    for idx in atk_incorrect_idxs: 
+        atk_count_map[atk_predictions[idx]] += 1
+    
+    for idx in org_correct_idxs: 
+        org_img_map[org_predictions[idx]].append(ds_test[idx][0])
+
+    for num, count in atk_count_map.items():
+        if force_even and count % 2 == 1: 
+            count += 1
+        return_img_map[num].extend(random.sample(org_img_map[num], count))
+
+    return return_img_map
+
 
 
 def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsne = True, make_persistence = True):
@@ -155,7 +178,7 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
     _, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
 
     if make_persistence: 
-        #Two examples of persistent barcode with attacked misclassified point and its unattacked counterpart. 
+        # Two examples of persistent barcode with attacked misclassified point and its unattacked counterpart. 
         # One on the image and one on the output the CNN layers
         img, label = ds_test[atk_incorrect_idxs[0]]
         make_persistence_barcode(img.numpy(), label, root, False)
@@ -167,36 +190,29 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
         #Calculate Entropies
         make_persistence_metrics(lenet_model, ds_test, org_predictions, atk_predictions, model_name, ds_name, root, fgsm_attack)
 
-        wass_sample_idxs,_ = train_test_split(
-            org_correct_idxs, 
-            stratify = [ds_test[i][1] for i in org_correct_idxs], 
-            train_size = len(atk_incorrect_idxs) * 2,
-            random_state = RANDOM_SEED
-        )
-
-        img_map = {}
-        for idx in wass_sample_idxs: 
-            img, label = ds_test[idx]
-            if label not in img_map:
-                img_map[label] = []
-            img_map[label].append(img)
-
-        sample_imgs_same_label_wasser_dist(lenet_model, img_map, model_name, ds_name, root)
+        #Calculate Wasserstein distances of correct unattacked images
+        img_map = sample_by_class(ds_test, org_correct_idxs, org_predictions, atk_incorrect_idxs, atk_predictions, force_even = True)
+        same_label_wasser_dist(lenet_model, img_map, model_name, ds_name, root)
 
     # TSNE related
     if make_tsne and root in ["data_original", "data_recon_4"]:
         atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
         atk_mis_true_labels = [ds_test.targets[idx] for idx in atk_incorrect_idxs]
         atk_mis_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in atk_incorrect_idxs]
+
         run_tsne(model_name, atk_mis_outputs, atk_mis_true_labels, ds_name, root, num_classes, "model output", fgsm_attack.attack, misclassified=True)
         run_tsne(model_name, atk_mis_images, atk_mis_true_labels, ds_name, root, num_classes, "input image", fgsm_attack.attack, misclassified=True)
 
-        tsne_sample_idxs,_ = train_test_split(
-            org_correct_idxs, 
-            stratify = [ds_test[i][1] for i in org_correct_idxs],
-            train_size = len(atk_incorrect_idxs), 
-            random_state = RANDOM_SEED
-        )
+        tsne_sample_idxs = org_correct_idxs
+
+        if len(atk_incorrect_idxs) < len(org_correct_idxs):
+
+            tsne_sample_idxs,_ = train_test_split(
+                org_correct_idxs, 
+                stratify = [ds_test[i][1] for i in org_correct_idxs],
+                train_size = len(atk_incorrect_idxs),
+                random_state = RANDOM_SEED
+            )
 
         correct_outputs = [model_output[i] for i in tsne_sample_idxs]
         correct_images = [ds_test[i][0].squeeze(0).numpy().flatten() for i in tsne_sample_idxs]
@@ -205,7 +221,9 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
         run_tsne(model_name, correct_outputs, correct_targets, ds_name, root, num_classes, "model output")
         run_tsne(model_name, correct_images, correct_targets, ds_name, root, num_classes, "input image")
     
-    pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=False).to_csv("persistence_entropies_copy.csv", index=False)
+    if make_persistence:
+        pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=False).to_csv("persistence_entropies_copy.csv", index=False)
+        pd.read_csv(WASS_DIST_OUTPUT_FILE, index_col=False).to_csv("wasserstein_distances_copy.csv", index=False)
 
 def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, add_root = None, make_tsne = True, make_persistence = True):
     """
@@ -259,35 +277,28 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
         #Calculate Entropies
         make_persistence_metrics(lenet_model, ds_test, org_predictions, atk_predictions, model_name, ds_name, root_name, fgsm_attack)
 
-        wass_sample_idxs,_ = train_test_split(
-            org_correct_idxs, 
-            stratify = [ds_test[i][1] for i in org_correct_idxs],
-            train_size = len(atk_incorrect_idxs) * 2, 
-            random_state = RANDOM_SEED)
-
-        img_map = {}
-
-        for idx in wass_sample_idxs: 
-            img, label = ds_test[idx]
-            if label not in img_map: 
-                img_map[label] = []
-            img_map[label].append(img)
+        img_map = sample_by_class(ds_test, org_correct_idxs, org_predictions, atk_incorrect_idxs, atk_predictions, force_even = True)
         
-        sample_imgs_same_label_wasser_dist(lenet_model, img_map, model_name, ds_name, root)
-
+        same_label_wasser_dist(lenet_model, img_map, model_name, ds_name, root)
 
     if make_tsne and (add_root is not None or root in ["data_original", "data_recon_3"]):
         atk_mis_outputs = [atk_model_output[idx] for idx in atk_incorrect_idxs]
         atk_mis_images = [ds_test[idx][0].squeeze(0).numpy().flatten() for idx in atk_incorrect_idxs]
         mis_true_labels = [ds_test._targets[idx] for idx in atk_incorrect_idxs]
+
         run_tsne(model_name, atk_mis_outputs, mis_true_labels, ds_name, root_name, num_classes, "model output", fgsm_attack.attack, misclassified=True)
         run_tsne(model_name, atk_mis_images, mis_true_labels, ds_name, root_name, num_classes, "input image", fgsm_attack.attack, misclassified=True)
-        tsne_sample_idxs, _ = train_test_split(
-            org_correct_idxs, 
-            stratify = [ds_test[i][1] for i in org_correct_idxs], 
-            train_size = len(atk_incorrect_idxs),
-            random_state = RANDOM_SEED
-        )
+
+        tsne_sample_idxs = org_correct_idxs
+
+        if len(atk_incorrect_idxs) < len(org_correct_idxs):
+
+            tsne_sample_idxs, _ = train_test_split(
+                org_correct_idxs, 
+                stratify = [ds_test[i][1] for i in org_correct_idxs], 
+                train_size = len(atk_incorrect_idxs),
+                random_state = RANDOM_SEED
+            )
 
         correct_outputs = [model_output[i] for i in tsne_sample_idxs]
         correct_images = [ds_test[i][0].squeeze(0).numpy().flatten() for i in tsne_sample_idxs]
@@ -296,8 +307,10 @@ def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, ad
         run_tsne(model_name, correct_outputs, correct_targets, ds_name, root_name, num_classes, "model output")
         run_tsne(model_name, correct_images, correct_targets, ds_name, root_name, num_classes, "input image")
     
-    pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=False).to_csv("persistence_entropies_copy.csv", index=False)
-
+    if make_persistence: 
+        pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=False).to_csv("persistence_entropies_copy.csv", index=False)
+        pd.read_csv(WASS_DIST_OUTPUT_FILE, index_col=False).to_csv("wasserstein_distances_copy.csv", index=False)
+    
 def main():
 
     for root in RECON_ROOT_NAMES:
@@ -312,7 +325,7 @@ def main():
             eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10,  make_tsne = True, make_persistence=False) 
             eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10,  make_tsne = True, make_persistence=False) 
             eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
-
+        
     eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3",  make_tsne = True, make_persistence=False)
 
 if __name__ == "__main__": 
