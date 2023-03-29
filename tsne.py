@@ -31,8 +31,8 @@ def run_tsne(model_name, data, labels, ds_name, recon_name, num_classes, data_de
     ds_version = "_".join(recon_name.split("_")[1:])
     title = f"{model_name}'s {points_shown} {data_desc} on {ds_name} {ds_version}"
     if attack is not None: 
-        title = f"{model_name}'s {points_shown} {data_desc} on {ds_name} {ds_version} ({data_desc}) with {attack} Attack"
-    plt.title(title)
+        title = f"{model_name}'s {points_shown} {data_desc} on {ds_name} {ds_version} with {attack} Attack"
+    plt.title(title, {'size' : 10})
     data_desc = "_".join(data_desc.split(" "))
     file_name = f"TSNE_{model_name}_{points_shown}_{ds_name}_{ds_version}_{data_desc}.png"
     if attack is not None:

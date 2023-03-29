@@ -64,7 +64,7 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
     font_dict = {'family': 'Arial', 
                  'color' : 'darkblue', 
                  'weight' : 'normal', 
-                 'size' : 20}
+                 'size' : 24}
 
     cur_df = accuracy_df[(accuracy_df["Dataset"] == dataset) & \
                         (accuracy_df["Model"] == model_name)]
@@ -85,7 +85,8 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
 
         if cur_attack == "None":
             reg_acc_values.append(row_ds["Average Accuracy"])
-            x_ticks.append(cur_recon)
+            cur_x_tick = cur_recon.split("_")[-1]
+            x_ticks.append(cur_x_tick)
 
             if second_y_ax is not None:
                 if cur_recon == "data_original":
@@ -104,12 +105,12 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
 
 
     fig, ax1 = plt.subplots()
-    plt.figure(figsize=(20,10))
-    plt.title(title, fontdict=font_dict)
+    plt.figure(figsize=(18,10))
+    #plt.title(title, fontdict=font_dict)
     ax1 = plt.gca()
     ax1.set_xlabel("Reconstruction Layer", **font_dict)
     ax1.set_ylabel("Accuracy", **font_dict)
-    ax1.set_ylim(0.2, 1.0)
+    ax1.tick_params(axis = "both", which = "major", labelsize=20)
     plot_1 = ax1.plot(x_ticks, reg_acc_values, color = "blue")
     plot_2 = ax1.plot(x_ticks, atk_acc_values, color = "orange")
     all_plots = plot_1 + plot_2
@@ -117,12 +118,13 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
 
     if second_y_ax is not None:
         ax2 = ax1.twinx()
+        ax2.tick_params(axis="y", which = "major", labelsize=20)
         ax2.set_ylabel(second_y_ax, **font_dict, rotation = 270)
         plot_3 = ax2.plot(x_ticks, second_y_values, color = "purple")
         all_plots += plot_3
         labels.append("Compression Rate")
 
-    ax1.legend(all_plots, labels, loc = 0)
+    ax1.legend(all_plots, labels, loc = 0, fontsize = 18)
     plt.savefig(os.path.join(ACCURACY_VIS_DIR, f"{model_name}_{dataset}_accuracies.png"))
     plt.clf()
 

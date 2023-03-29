@@ -41,18 +41,18 @@ def make_result_distributions():
 
            
             fig, axes = plt.subplots(1,2)
-            fig.set_figwidth(15)
-            fig.set_figheight(15)
+            fig.set_figwidth(10)
+            fig.set_figheight(8)
             
-            sns.histplot(ax=axes[0], data = cor_wass_org_img_df, x = "Wasserstein_Distance", kde=True, stat="probability", bins=25)
-            axes[0].set_title(f"Wasserstein distances of classified {label} images produced by {recon}")
+            sns.histplot(ax=axes[0], data = cor_wass_org_img_df, x = "Wasserstein_Distance", kde=True, stat="proportion", bins=25)
+            axes[0].set_title(f"Wasserstein distances of classified {label} images produced by {recon}: {len(cor_wass_org_img_df.index)}", {"size": 9})
             axes[0].set_xlim(0,2.5)
-            axes[0].set_ylim(0,0.5)
+            axes[0].set_ylim(0,0.4)
 
-            sns.histplot(ax=axes[1], data = inc_wass_atk_img_df, x = "Wasserstein_Distance", kde=True, stat="probability", bins=25)
-            axes[1].set_title(f"Wasserstein distance of attacked images misclassified as {label} produced by {recon}")
+            sns.histplot(ax=axes[1], data = inc_wass_atk_img_df, x = "Wasserstein_Distance", kde=True, stat="proportion", bins=25)
+            axes[1].set_title(f"Wasserstein distance of attacked images misclassified as {label} produced by {recon}: {len(inc_wass_atk_img_df.index)}", {"size": 9})
             axes[1].set_xlim(0,2.5)
-            axes[1].set_ylim(0,0.5)
+            axes[1].set_ylim(0,0.4)
 
             fig.tight_layout()
             fig.savefig(os.path.join(WASS_DIST_VIS_DIR,f"{recon}_{label}.png"))

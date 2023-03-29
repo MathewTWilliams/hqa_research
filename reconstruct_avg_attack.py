@@ -36,12 +36,13 @@ def main(run_attack = False):
 
     root = os.path.join(IMG_MNIST_DIR_PATH, "data_original")
     ds_img_folder = NumericImageFolder(root, transform=transform)
-    dl_img_folder = DataLoader(ds_img_folder, batch_size=1, shuffle = False, num_workers=NUM_DATA_LOADER_WORKERS)
+    dl_img_folder = DataLoader(ds_img_folder, batch_size=1, shuffle = True, num_workers=NUM_DATA_LOADER_WORKERS)
 
 
-    results_dict = {i: [] for i in range(10)}
+    num_correct = 0
+    count_map = {num: 0 for num in range(11)}
 
-    for data, label_tensor in tqdm(dl_img_folder):
+    for i, (data, label_tensor) in enumerate(dl_img_folder):
         cur_label = label_tensor.tolist()[0]
         cur_recons = []
 
@@ -58,19 +59,21 @@ def main(run_attack = False):
         cur_outputs = lenet(cur_recons.to(device)).detach().cpu()
         cur_predictions = outputs_to_predictions(cur_outputs)
 
-        results_dict[cur_label].append(np.sum(cur_predictions == cur_label))
+        num_correct += np.sum(cur_predictions == cur_label)
+        count_map[np.sum(cur_predictions == cur_label)] += 1
+        attacked_img = "Attacked" if run_attack else "Normal"
+        print(f"{attacked_img} current image: {cur_label}, Number of reconstructions correct: {np.sum(cur_predictions == cur_label)}")
+        if i == 100:
+            for key,item in count_map.items(): 
+                print(f"{key} : {item}")
 
-    avg_accuracy = 0
+            break
 
-    for cur_label, n_correct_preds in results_dict.items(): 
-            num_correct = np.sum(n_correct_preds)
-            perc_correct = num_correct / (N_RECONSTRUCTIONS * len(n_correct_preds))
-            weighted_value = perc_correct * (len(n_correct_preds) / len(ds_img_folder))
-            avg_accuracy += weighted_value
-            
-    attack_name = fgsm_attack.attack if run_attack else "None"
 
-    add_accuracy_results("Lenet(10 recons per image)", "MNIST", "data_original", attack_name, avg_accuracy)    
+    #accuracy = num_correct / (N_RECONSTRUCTIONS * len(ds_img_folder))            
+    #attack_name = fgsm_attack.attack if run_attack else "None"
+
+    #add_accuracy_results("Lenet(10 recons per image)", "MNIST", "data_original", attack_name, accuracy)    
 
 if __name__ == "__main__":
     main(run_attack=False)
