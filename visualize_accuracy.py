@@ -111,8 +111,8 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
     ax1.set_xlabel("Reconstruction Layer", **font_dict)
     ax1.set_ylabel("Accuracy", **font_dict)
     ax1.tick_params(axis = "both", which = "major", labelsize=20)
-    plot_1 = ax1.plot(x_ticks, reg_acc_values, color = "blue")
-    plot_2 = ax1.plot(x_ticks, atk_acc_values, color = "orange")
+    plot_1 = ax1.plot(x_ticks, reg_acc_values, color = "blue", linewidth =6)
+    plot_2 = ax1.plot(x_ticks, atk_acc_values, color = "orange", linewidth =6)
     all_plots = plot_1 + plot_2
     labels = ["Regular Accuracy", "FGSM Attack Accuracy"]
 
@@ -120,11 +120,11 @@ def make_and_save_line_graph(dataset, model_name, second_y_ax = None, hqa_model_
         ax2 = ax1.twinx()
         ax2.tick_params(axis="y", which = "major", labelsize=20)
         ax2.set_ylabel(second_y_ax, **font_dict, rotation = 270)
-        plot_3 = ax2.plot(x_ticks, second_y_values, color = "purple")
+        plot_3 = ax2.plot(x_ticks, second_y_values, color = "purple", linewidth =6)
         all_plots += plot_3
         labels.append("Compression Rate")
 
-    ax1.legend(all_plots, labels, loc = 0, fontsize = 18)
+    ax1.legend(all_plots, labels, loc = 0, fontsize = 20)
     plt.savefig(os.path.join(ACCURACY_VIS_DIR, f"{model_name}_{dataset}_accuracies.png"))
     plt.clf()
 
