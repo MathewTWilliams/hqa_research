@@ -29,6 +29,7 @@ HQA_TILED_EMNIST_MODEL_NAME = "hqa_tiled_emnist_model"
 HQA_SIG_MODEL_NAME = "hqa_sig_model"
 
 CWD = os.path.abspath(os.getcwd())
+JSON_DIR_PATH =os.path.join(CWD, "json_files")
 
 #Saved data file paths (original data and constructions)
 IMG_DIR_PATH = os.path.join(CWD, "data")

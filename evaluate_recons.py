@@ -18,7 +18,7 @@ from sklearn.metrics import ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 import random
  
-import reconstruct_avg_attack
+from reconstruct_avg_attack import run_reconstruct_avg
 
 def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, save_result = True, attack = None):
     """
@@ -149,7 +149,7 @@ def sample_by_class(ds_test, org_correct_idxs, org_predictions, atk_incorrect_id
 
 
 
-def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsne = True, make_persistence = True):
+def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsne = True, make_persistence = True, make_avg_recons = False):
     """
     Arguments: 
     - model_save_path: The file path where the model can be located. 
@@ -169,7 +169,7 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
     #query model and evaluate results as normal
     model_output = query_model(lenet_model, dl_test, return_softmax = False)
     org_predictions = outputs_to_predictions(torch.Tensor(model_output))
-    org_correct_idxs, _ = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root, save_result = True)
+    org_correct_idxs, org_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root, save_result = True)
 
     #make fgsm attack, query attacked model, evaluate the results
     fgsm_attack = torchattacks.FGSM(lenet_model)
@@ -225,7 +225,7 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
         pd.read_csv(PERS_ETP_OUTPUT_FILE, index_col=False).to_csv("persistence_entropies_copy.csv", index=False)
         pd.read_csv(WASS_DIST_OUTPUT_FILE, index_col=False).to_csv("wasserstein_distances_copy.csv", index=False)
 
-def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, add_root = None, make_tsne = True, make_persistence = True):
+def eval_tiled_model(model_save_path, model_name, dataset, root, num_classes, add_root = None, make_tsne = True, make_persistence = True, make_avg_recons = False):
     """
     Arguments: 
     - model_save_path: The file path where the model is be located. 
@@ -316,17 +316,17 @@ def main():
     for root in tqdm(RECON_ROOT_NAMES):
 
         eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, make_tsne=True, make_persistence=False) # only model to calculate entropies
-        eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) # this experiment was only concerned about accuracy
-        eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) 
-        eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
-        if root != "data_recon_4":
+        #eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) # this experiment was only concerned about accuracy
+        #eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) 
+        #eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
+        #if root != "data_recon_4":
             #eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_FFT_DIR_PATH, root, 10)
             
-            eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10,  make_tsne = True, make_persistence=False) 
-            eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10,  make_tsne = True, make_persistence=False) 
-            eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
+    #        eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, root,  10,  make_tsne = True, make_persistence=False) 
+    #        eval_tiled_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_TILED_FASH_MNIST_DIR_PATH, root, 10,  make_tsne = True, make_persistence=False) 
+    #        eval_tiled_model(LENET_EMNIST_PATH, "Lenet", IMG_TILED_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
         
-    eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3",  make_tsne = True, make_persistence=False)
+    #eval_tiled_model(LENET_MNIST_PATH, "Lenet", IMG_TILED_MNIST_DIR_PATH, "data_recon_0", 10, "data_recon_3",  make_tsne = True, make_persistence=False)
 
 if __name__ == "__main__": 
     main()
