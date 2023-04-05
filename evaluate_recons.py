@@ -18,7 +18,7 @@ from sklearn.metrics import ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 import random
  
-from reconstruct_avg_attack import run_reconstruct_avg
+from reconstruct_avg_attack import run_reconstruct_avg, run_dict_reconstruct_avg
 
 def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, save_result = True, attack = None):
     """
@@ -126,24 +126,24 @@ def same_label_wasser_dist(model, img_map, model_name, ds_name, root):
             except Exception as e: 
                 print(f"Error calculating Wasserstein Distance: {e}")
 
-def sample_by_class(ds_test, org_correct_idxs, org_predictions, atk_incorrect_idxs, atk_predictions, force_even = False): 
+def sample_by_class(ds_test, correct_idxs, correct_predictions, incorrect_idxs, incorrect_predictions, force_even = False): 
 
-    classes = np.unique(org_predictions)
+    classes = np.unique(correct_predictions)
 
-    atk_count_map = {num: 0 for num in classes}
-    org_img_map = {num: [] for num in classes}
+    inc_count_map = {num: 0 for num in classes}
+    cor_img_map = {num: [] for num in classes}
     return_img_map = {num: [] for num in classes}
 
-    for idx in atk_incorrect_idxs: 
-        atk_count_map[atk_predictions[idx]] += 1
+    for idx in incorrect_idxs: 
+        inc_count_map[incorrect_predictions[idx]] += 1
     
-    for idx in org_correct_idxs: 
-        org_img_map[org_predictions[idx]].append(ds_test[idx][0])
+    for idx in correct_idxs: 
+        cor_img_map[correct_predictions[idx]].append(ds_test[idx][0])
 
-    for num, count in atk_count_map.items():
+    for num, count in inc_count_map.items():
         if force_even and count % 2 == 1: 
             count += 1
-        return_img_map[num].extend(random.sample(org_img_map[num], count))
+        return_img_map[num].extend(random.sample(cor_img_map[num], count))
 
     return return_img_map
 
@@ -193,6 +193,20 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
         #Calculate Wasserstein distances of correct unattacked images
         img_map = sample_by_class(ds_test, org_correct_idxs, org_predictions, atk_incorrect_idxs, atk_predictions, force_even = True)
         same_label_wasser_dist(lenet_model, img_map, model_name, ds_name, root)
+
+
+    if make_avg_recons and root == "data_original":
+            file_name = f"hqa_0_20_recons_org_inc_normal.json"
+            run_reconstruct_avg(file_name, org_incorrect_idxs, 0, False, False)
+            file_name = f"hqa_4_20_recons_org_inc_normal.json"
+            run_reconstruct_avg(file_name, org_incorrect_idxs, 4, False, False)
+
+            img_map = sample_by_class(ds_test, org_correct_idxs, org_predictions, org_incorrect_idxs, org_predictions, False)
+            file_name = f"hqa_0_20_recons_org_cor_normal.json"
+            run_dict_reconstruct_avg(lenet_model, file_name, img_map, 0, False, False)
+            run_dict_reconstruct_avg(lenet_model, file_name, img_map, 4, False, False)
+            
+
 
     # TSNE related
     if make_tsne and root in ["data_original", "data_recon_4"]:
