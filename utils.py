@@ -73,6 +73,8 @@ ENTR_VIS_DIR = os.path.join(VISUAL_DIR, "Entropies")
 CONF_MAT_VIS_DIR = os.path.join(VISUAL_DIR, "Confusion Matrices")
 WASS_DIST_VIS_DIR = os.path.join(VISUAL_DIR, "Wasserstein")
 
+RECONS_EXPERIMENT_DIR = os.path.join(CWD, "Recons_Experiment")
+
 ACCURACY_OUTPUT_FILE = os.path.join(CWD, "classification_accuracies.csv")
 ACCURACY_FILE_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Average Accuracy"] 
 MNIST_BATCH_SIZE = 512
@@ -87,9 +89,6 @@ PERS_EPT_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction", "Reconstructi
 
 WASS_DIST_OUTPUT_FILE = os.path.join(CWD, "wasserstein_distances.csv")
 WASS_DIST_OUTPUT_COLS = ["Model", "Dataset", "Label", "Prediction 1(org)", "Prediction 2(atk)", "Reconstruction", "Attack", "Input", "Wasserstein_Distance"]
-
-CLASSIFICATION_IDXS_FILE = os.path.join(CWD, "classification_idxs.csv")
-CLASSIFICATION_IDXS_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Correctly Classified", "Index"]
 
 MNIST_TRANSFORM = transforms.Compose([
     transforms.Resize(32),
@@ -206,6 +205,10 @@ def add_wasserstein_distance(model_name, ds_name, label, pred_1, pred_2, reconst
 
     add_row_to_csv(WASS_DIST_OUTPUT_FILE, WASS_DIST_OUTPUT_COLS, row_dict)
 
+# below could be implemented to help break up the evaluate_recons.py file into more manageable pieces
+
+CLASSIFICATION_IDXS_FILE = os.path.join(CWD, "classification_idxs.csv")
+CLASSIFICATION_IDXS_COLS = ["Model", "Dataset", "Reconstruction", "Attack", "Correctly Classified", "Index"]
 
 def add_classification_idxs(model_name, ds_name, reconstruction, attack, cor_classified, index): 
     row_dict = {"Model" : [model_name],
@@ -294,15 +297,16 @@ def get_bit_usage(indices):
 
 
 # TRAINING
-def save_img(recon, label, path, idx, is_tiled, num_tiles):
+def save_img(recon, label, path, idx, is_tiled, num_tiles, file_name_suffix = ""):
     p = Path(path)
     p.mkdir(parents=True,exist_ok=True)
     print(f"recon image shape: {recon.shape}")
-    filename = f"img{label}_{idx}.png"
+    file_name_suffix = "" if file_name_suffix == "" else f"_{file_name_suffix}.png"
+    filename = f"img{label}_{idx}{file_name_suffix}.png"
     if is_tiled: 
         real_idx = idx // num_tiles
         split_num = idx % num_tiles
-        filename = f"img{label}_{real_idx}_{split_num}.png"
+        filename = f"img{label}_{real_idx}_{split_num}{file_name_suffix}.png"
     matplotlib.image.imsave(p / filename, recon.cpu().numpy(), cmap = "gray")	
     checkrecon = np.asarray(Image.open(p / filename).convert("L"))
     print(f"loaded image shape: {checkrecon.shape}")
