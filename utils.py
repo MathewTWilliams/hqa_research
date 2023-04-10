@@ -301,7 +301,7 @@ def save_img(recon, label, path, idx, is_tiled, num_tiles, file_name_suffix = ""
     p = Path(path)
     p.mkdir(parents=True,exist_ok=True)
     print(f"recon image shape: {recon.shape}")
-    file_name_suffix = "" if file_name_suffix == "" else f"_{file_name_suffix}.png"
+    file_name_suffix = "" if file_name_suffix == "" else f"_{file_name_suffix}"
     filename = f"img{label}_{idx}{file_name_suffix}.png"
     if is_tiled: 
         real_idx = idx // num_tiles

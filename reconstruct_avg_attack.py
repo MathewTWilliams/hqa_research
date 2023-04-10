@@ -41,22 +41,22 @@ def run_reconstruct_avg(model, save_file_name, ds_img_folder = None, ds_idxs = N
     if attack_img or attack_recons: 
         fgsm_attack = FGSM(model)
 
-    for idx in ds_idxs: 
+    for i, idx in enumerate(ds_idxs): 
         img, label = ds_img_folder[idx]
-        save_img(img, label, sub_dir_path, idx, False, 0, "original" )
+        save_img(img, label, sub_dir_path, i, False, 0, "original" )
 
         if attack_img: 
             img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0)#.detach().cpu()
-            save_img(img, label, sub_dir_path, idx, False, 0, "atk_original")
+            save_img(img, label, sub_dir_path, i, False, 0, "atk_original")
 
         cur_recons = []
 
-        for i in range(N_RECONSTRUCTIONS):
+        for j in range(N_RECONSTRUCTIONS):
             recon = hqa_layer_n.reconstruct(img).squeeze(0)#.detach().cpu()
-            save_img(recon, label, sub_dir_path, idx, False, 0, f"recon_{layer_num}_{i}")
+            save_img(recon, label, sub_dir_path, i, False, 0, f"recon_{layer_num}_{j}")
             if attack_recons: 
                 recon = fgsm_attack(recon.unsqueeze(0), torch.LongTensor([label])).squeeze(0)#.detach().cpu()
-                save_img(recon, label, sub_dir_path, idx, False, 0, f"atk_recon_{layer_num}_{i}")
+                save_img(recon, label, sub_dir_path, i, False, 0, f"atk_recon_{layer_num}_{j}")
             cur_recons.append(recon.numpy())
 
         cur_recons = torch.Tensor(np.array(cur_recons)).squeeze().unsqueeze(1)
@@ -91,18 +91,18 @@ def run_dict_reconstruct_avg(model, save_file_name, img_map, layer_num = 0, atta
         fgsm_attack = FGSM(model)
 
     for label, imgs in img_map:
-        for img in imgs: 
-            save_img(img, label, sub_dir_path, "?", False, 0, "original")
+        for i, img in enumerate(imgs): 
+            save_img(img, label, sub_dir_path, i, False, 0, "original")
             if attack_img: 
                 img = fgsm_attack(img.unsqueeze(0), torch.LongTensor([label])).squeeze(0)#.detach().cpu()
-                save_img(img, label, sub_dir_path, "?", False, 0, "atk_original")
+                save_img(img, label, sub_dir_path, i, False, 0, "atk_original")
 
-            for i in range(N_RECONSTRUCTIONS): 
+            for j in range(N_RECONSTRUCTIONS): 
                 recon = hqa_layer_n.reconstruct(img).squeeze(0)
-                save_img(recon, label, sub_dir_path, "?", False, 0, f"recon_{layer_num}_{i}")
+                save_img(recon, label, sub_dir_path, i, False, 0, f"recon_{layer_num}_{j}")
                 if attack_recons: 
                     recon = fgsm_attack(recon.unsqueeze(0), torch.LongTensor([label])).squeeze(0)#.detach().cpu()
-                    save_img(img, label, sub_dir_path, "?", False, 0, f"atk_recon_{layer_num}_{i}")
+                    save_img(img, label, sub_dir_path, i, False, 0, f"atk_recon_{layer_num}_{j}")
                 cur_recons.append(recon.numpy())
 
             cur_recons = torch.Tensor(np.array(cur_recons)).squeeze().unsqueeze(1)

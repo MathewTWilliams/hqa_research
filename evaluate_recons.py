@@ -204,6 +204,7 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
             img_map = sample_by_class(ds_test, org_correct_idxs, org_predictions, org_incorrect_idxs, org_predictions, False)
             file_name = f"hqa_0_20_recons_org_cor_normal.json"
             run_dict_reconstruct_avg(lenet_model, file_name, img_map, 0, False, False)
+            file_name = f"hqa_4_20_recons_org_cor_normal.json"
             run_dict_reconstruct_avg(lenet_model, file_name, img_map, 4, False, False)
             
 

@@ -36,8 +36,9 @@ def make_result_distributions():
                                               (wass_img_df["Prediction 1(org)"] == label) & 
                                               (wass_img_df["Prediction 2(atk)"] == label)]
 
-            inc_wass_atk_img_df = wass_img_df[(wass_img_df["Attack"] != "None") &
-                                              (wass_img_df["Prediction 2(atk)"] != label)]
+            inc_wass_atk_img_df = wass_img_df[(wass_img_df["Attack"] != "None") & 
+                                              (wass_img_df["Label"] != label)
+                                              (wass_img_df["Prediction 2(atk)"] == label)]
 
            
             fig, axes = plt.subplots(1,2)
