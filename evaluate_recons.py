@@ -41,7 +41,7 @@ def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, 
         elif label != pred:
             incorrect_idxs.append(i)
 
-    if save_result:
+    '''if save_result:
         if not os.path.isdir(CONF_MAT_VIS_DIR): 
             os.mkdir(CONF_MAT_VIS_DIR)
         conf_mat_disp = ConfusionMatrixDisplay.from_predictions(test_labels, predictions, normalize = "all")
@@ -52,7 +52,7 @@ def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, 
 
         avg_accuracy = len(correct_idxs) / len(test_labels)
         attack_name = attack if attack != None else "None"
-        add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
+        add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)'''
 
     return correct_idxs, incorrect_idxs
 
@@ -196,15 +196,15 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
 
 
     if make_avg_recons and root == "data_original":
-            file_name = f"hqa_0_20_recons_org_inc_normal.json"
+            file_name = f"hqa_0_10_recons_org_inc.json"
             run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 0, False, False)
-            file_name = f"hqa_4_20_recons_org_inc_normal.json"
+            file_name = f"hqa_4_10_recons_org_inc.json"
             run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 4, False, False)
 
             img_map = sample_by_class(ds_test, org_correct_idxs, org_predictions, org_incorrect_idxs, org_predictions, False)
-            file_name = f"hqa_0_20_recons_org_cor_normal.json"
+            file_name = f"hqa_0_10_recons_org_cor.json"
             run_dict_reconstruct_avg(lenet_model, file_name, img_map, 0, False, False)
-            file_name = f"hqa_4_20_recons_org_cor_normal.json"
+            file_name = f"hqa_4_10_recons_org_cor.json"
             run_dict_reconstruct_avg(lenet_model, file_name, img_map, 4, False, False)
             
 
@@ -330,7 +330,8 @@ def main():
 
     for root in tqdm(RECON_ROOT_NAMES):
 
-        eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, make_tsne=True, make_persistence=False) # only model to calculate entropies
+        eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, make_tsne=False, make_persistence=False, make_avg_recons=True) # only model to calculate entropies\
+        break
         #eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) # this experiment was only concerned about accuracy
         #eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) 
         #eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
