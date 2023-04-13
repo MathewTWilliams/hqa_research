@@ -55,7 +55,7 @@ def run_reconstruct_avg(model, save_file_name, ds_img_folder = None, ds_idxs = N
             recon = hqa_layer_n.reconstruct(img.to(device).unsqueeze(0)).squeeze(0).detach().cpu()
             save_img(recon.squeeze(0), label, sub_dir_path, i, False, 0, f"recon_{layer_num}_{j}")
             if attack_recons: 
-                recon = fgsm_attack(recon.unsqueeze(0), torch.LongTensor([label])).squeeze(0)#.detach().cpu()
+                recon = fgsm_attack(recon.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
                 save_img(recon.squeeze(0), label, sub_dir_path, i, False, 0, f"atk_recon_{layer_num}_{j}")
             cur_recons.append(recon.numpy())
 
@@ -103,7 +103,7 @@ def run_dict_reconstruct_avg(model, save_file_name, img_map, layer_num = 0, atta
                 recon = hqa_layer_n.reconstruct(img.to(device).unsqueeze(0)).squeeze(0).detach().cpu()
                 save_img(recon.squeeze(0), label, sub_dir_path, i, False, 0, f"recon_{layer_num}_{j}")
                 if attack_recons: 
-                    recon = fgsm_attack(recon.unsqueeze(0), torch.LongTensor([label])).squeeze(0)#.detach().cpu()
+                    recon = fgsm_attack(recon.unsqueeze(0), torch.LongTensor([label])).squeeze(0).detach().cpu()
                     save_img(img.squeeze(0), label, sub_dir_path, i, False, 0, f"atk_recon_{layer_num}_{j}")
                 cur_recons.append(recon.numpy())
 

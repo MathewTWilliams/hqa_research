@@ -196,17 +196,47 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
 
 
     if make_avg_recons and root == "data_original":
-            file_name = f"hqa_0_10_recons_org_inc.json"
-            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 0, False, False)
-            file_name = f"hqa_4_10_recons_org_inc.json"
-            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 4, False, False)
-
             img_map = sample_by_class(ds_test, org_correct_idxs, org_predictions, org_incorrect_idxs, org_predictions, False)
-            file_name = f"hqa_0_10_recons_org_cor.json"
+
+            file_name = f"hqa_0_10_recons_org_inc_no_atk.json"
+            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 0, False, False)
+            file_name = f"hqa_4_10_recons_org_inc_no_atk.json"
+            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 4, False, False)
+        
+            file_name = f"hqa_0_10_recons_org_cor_no_atk.json"
             run_dict_reconstruct_avg(lenet_model, file_name, img_map, 0, False, False)
-            file_name = f"hqa_4_10_recons_org_cor.json"
+            file_name = f"hqa_4_10_recons_org_cor_no_atk.json"
             run_dict_reconstruct_avg(lenet_model, file_name, img_map, 4, False, False)
-            
+
+            file_name = f"hqa_0_10_recons_org_inc_atk_img.json"
+            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 0, True, False)
+            file_name = f"hqa_4_10_recons_org_inc_atk_img.json"
+            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 4, True, False)
+        
+            file_name = f"hqa_0_10_recons_org_cor_atk_img.json"
+            run_dict_reconstruct_avg(lenet_model, file_name, img_map, 0, True, False)
+            file_name = f"hqa_4_10_recons_org_cor_atk_img.json"
+            run_dict_reconstruct_avg(lenet_model, file_name, img_map, 4, True, False)
+
+            file_name = f"hqa_0_10_recons_org_inc_atk_recons.json"
+            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 0, False, True)
+            file_name = f"hqa_4_10_recons_org_inc_atk_recons.json"
+            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 4, False, True)
+        
+            file_name = f"hqa_0_10_recons_org_cor_atk_recons.json"
+            run_dict_reconstruct_avg(lenet_model, file_name, img_map, 0, False, True)
+            file_name = f"hqa_4_10_recons_org_cor_atk_recons.json"
+            run_dict_reconstruct_avg(lenet_model, file_name, img_map, 4, False, True)
+
+            file_name = f"hqa_0_10_recons_org_inc_atk_both.json"
+            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 0, True, True)
+            file_name = f"hqa_4_10_recons_org_inc_atk_both.json"
+            run_reconstruct_avg(lenet_model, file_name, ds_test, org_incorrect_idxs, 4, True, True)
+        
+            file_name = f"hqa_0_10_recons_org_cor_atk_both.json"
+            run_dict_reconstruct_avg(lenet_model, file_name, img_map, 0, True, True)
+            file_name = f"hqa_4_10_recons_org_cor_atk_both.json"
+            run_dict_reconstruct_avg(lenet_model, file_name, img_map, 4, True, True)
            
            
 
