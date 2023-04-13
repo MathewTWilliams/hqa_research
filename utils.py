@@ -16,6 +16,9 @@ import torchvision.transforms.functional as TF
 import scipy.fftpack as fp
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+FGSM_EPS = 16 / 255
+
+
 LAYER_NAMES = ["Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4 Final"]
 RECON_ROOT_NAMES = ["data_original", "data_jpg", "data_recon_0", "data_recon_1",
                     "data_recon_2", "data_recon_3", "data_recon_4"]

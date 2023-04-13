@@ -175,7 +175,7 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
     fgsm_attack = torchattacks.FGSM(lenet_model)
     atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
-    _, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
+    atk_correct_idxs, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
 
     if make_persistence: 
         # Two examples of persistent barcode with attacked misclassified point and its unattacked counterpart. 
@@ -207,7 +207,8 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
             file_name = f"hqa_4_10_recons_org_cor.json"
             run_dict_reconstruct_avg(lenet_model, file_name, img_map, 4, False, False)
             
-
+           
+           
 
     # TSNE related
     if make_tsne and root in ["data_original", "data_recon_4"]:
