@@ -76,7 +76,7 @@ if __name__ == "__main__":
             "Lenet_mnist.png", 
             10,
             validate = True)
-    lenet_model = torch.load(LENET_MNIST_PATH)
+    
     # Adversarial training on MNIST
     fgsm_attack = FGSM(lenet_model)
     _ = run_lenet(dl_train, 
@@ -119,5 +119,5 @@ if __name__ == "__main__":
     # need to evaluate now because dl_test_map isn't saved anywhere
     fgsm_attack = FGSM(lenet_model)
     # get the accuracies from lenet trainied on reconstructions
-    test_recon_model(lenet_model, dl_test_map, "Lenet", "MNIST Recons", fgsm_attack)
+    test_recon_model(lenet_model, dl_test_map, "Lenet (Recons)", "MNIST Recons", fgsm_attack)
 
