@@ -75,6 +75,7 @@ ACCURACY_VIS_DIR = os.path.join(VISUAL_DIR, "Accuracy Plots")
 ENTR_VIS_DIR = os.path.join(VISUAL_DIR, "Entropies")
 CONF_MAT_VIS_DIR = os.path.join(VISUAL_DIR, "Confusion Matrices")
 WASS_DIST_VIS_DIR = os.path.join(VISUAL_DIR, "Wasserstein")
+RECON_REPEAT_VIS_DIR = os.path.join(VISUAL_DIR, "Recon Repeats")
 
 RECONS_EXPERIMENT_DIR = os.path.join(CWD, "Recons_Experiment")
 

@@ -2,9 +2,13 @@
 /data*
 /models*
 /To_Implement*
-/.RData
-/.Rhistory
+.RData
+.Rhistory
 /Recons_Experiment*
+/Visuals*
+/json_files*
+/.vscode*
+/csv_files*
 
 
 

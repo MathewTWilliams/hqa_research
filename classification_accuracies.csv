@@ -107,3 +107,17 @@ Lenet,EMNIST,data_recon_4,None,0.3220744680851063
 Lenet,EMNIST,data_recon_4,FGSM,0.2215425531914893
 Lenet,Tiled_MNIST,data_recon_0&3,None,0.9384
 Lenet,Tiled_MNIST,data_recon_0&3,FGSM,0.8734
+Lenet,MNIST,data_original,FGSM(16/255),0.9002
+Lenet (Adversarial),MNIST,data_original,FGSM(16/255),0.932
+Lenet,MNIST,data_jpg,FGSM(16/255),0.8917
+Lenet (Adversarial),MNIST,data_jpg,FGSM(16/255),0.9269
+Lenet,MNIST,data_recon_0,FGSM(16/255),0.8917
+Lenet (Adversarial),MNIST,data_recon_0,FGSM(16/255),0.9273
+Lenet,MNIST,data_recon_1,FGSM(16/255),0.8894
+Lenet (Adversarial),MNIST,data_recon_1,FGSM(16/255),0.9206
+Lenet,MNIST,data_recon_2,FGSM(16/255),0.8629
+Lenet (Adversarial),MNIST,data_recon_2,FGSM(16/255),0.8918
+Lenet,MNIST,data_recon_3,FGSM(16/255),0.8126
+Lenet (Adversarial),MNIST,data_recon_3,FGSM(16/255),0.84
+Lenet,MNIST,data_recon_4,FGSM(16/255),0.7626
+Lenet (Adversarial),MNIST,data_recon_4,FGSM(16/255),0.7674

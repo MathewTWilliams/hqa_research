@@ -41,7 +41,7 @@ def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, 
         elif label != pred:
             incorrect_idxs.append(i)
 
-    '''if save_result:
+    if save_result:
         if not os.path.isdir(CONF_MAT_VIS_DIR): 
             os.mkdir(CONF_MAT_VIS_DIR)
         conf_mat_disp = ConfusionMatrixDisplay.from_predictions(test_labels, predictions, normalize = "all")
@@ -52,7 +52,7 @@ def evaluate_dataset(model_name, test_labels, predictions, ds_name, recon_name, 
 
         avg_accuracy = len(correct_idxs) / len(test_labels)
         attack_name = attack if attack != None else "None"
-        add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)'''
+        add_accuracy_results(model_name, ds_name, recon_name, attack_name, avg_accuracy)
 
     return correct_idxs, incorrect_idxs
 
@@ -149,7 +149,8 @@ def sample_by_class(ds_test, correct_idxs, correct_predictions, incorrect_idxs, 
 
 
 
-def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsne = True, make_persistence = True, make_avg_recons = False):
+def eval_model(model_save_path, model_name, dataset, root, num_classes, 
+               make_tsne = True, make_persistence = True, make_avg_recons = False, atk_eps = 8/255, atk_eps_str = "8/255"):
     """
     Arguments: 
     - model_save_path: The file path where the model can be located. 
@@ -172,10 +173,10 @@ def eval_model(model_save_path, model_name, dataset, root, num_classes, make_tsn
     org_correct_idxs, org_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, org_predictions, ds_name, root, save_result = True)
 
     #make fgsm attack, query attacked model, evaluate the results
-    fgsm_attack = torchattacks.FGSM(lenet_model)
+    fgsm_attack = torchattacks.FGSM(lenet_model, eps = atk_eps)
     atk_model_output = query_model(lenet_model, dl_test, fgsm_attack, return_softmax = False)
     atk_predictions = outputs_to_predictions(torch.Tensor(atk_model_output))
-    atk_correct_idxs, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, fgsm_attack.attack)
+    atk_correct_idxs, atk_incorrect_idxs = evaluate_dataset(model_name, ds_test.targets, atk_predictions, ds_name, root, True, f"{fgsm_attack.attack}({atk_eps_str})")
 
     if make_persistence: 
         # Two examples of persistent barcode with attacked misclassified point and its unattacked counterpart. 
@@ -361,9 +362,9 @@ def main():
 
     for root in tqdm(RECON_ROOT_NAMES):
 
-        eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, make_tsne=False, make_persistence=False, make_avg_recons=True) # only model to calculate entropies\
-        break
-        #eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) # this experiment was only concerned about accuracy
+        eval_model(LENET_MNIST_PATH, "Lenet", IMG_MNIST_DIR_PATH, root, 10, make_tsne=False, make_persistence=False, make_avg_recons=False, atk_eps = 16/255, atk_eps_str = "16/255") # only model to calculate entropies\
+        eval_model(LENET_ADV_MNIST_PATH, "Lenet (Adversarial)", IMG_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False, atk_eps = 16/255, atk_eps_str = "16/255") # this experiment was only concerned about accuracy
+        
         #eval_model(LENET_FASH_MNIST_PATH, "Lenet", IMG_FASH_MNIST_DIR_PATH, root, 10, make_tsne = True, make_persistence=False) 
         #eval_model(LENET_EMNIST_PATH, "Lenet", IMG_EMNIST_DIR_PATH, root, 47,  make_tsne = True, make_persistence=False) 
         #if root != "data_recon_4":
